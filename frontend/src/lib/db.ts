@@ -127,3 +127,14 @@ export async function getMessages(sessionId: string): Promise<Message[]> {
     };
   });
 }
+
+/**
+ * Load messages for a session, sorted by created_at ascending.
+ * No auth check -- old chats are viewable without authentication (PERS-04).
+ */
+export async function loadMessages(sessionId: string): Promise<Message[]> {
+  const messages = await getMessages(sessionId);
+  return messages.sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+}
