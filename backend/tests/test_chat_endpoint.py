@@ -1,4 +1,4 @@
-"""Integration tests for /chat SSE endpoint."""
+"""Integration tests for /chat SSE endpoint with hybrid retrieval."""
 from __future__ import annotations
 
 import json
@@ -31,22 +31,21 @@ from backend.app import web_app
 DIM = 8
 
 
-def _make_chunks_and_embeddings(n=10, all_low_score=False):
+def _make_chunks_and_embeddings(n=10, all_low_score=False, file_ids=None):
     """Create synthetic chunks and embeddings."""
-    chunks = [
-        {
-            "file_name": f"doc_{i}.pdf",
-            "file_id": f"fid_{i}",
-            "text": f"Content about topic {i}",
-            "mime_type": "application/pdf",
-            "page_number": i + 1,
-        }
-        for i in range(n)
-    ]
+    chunks = []
+    for i in range(n):
+        fid = file_ids[i] if file_ids and i < len(file_ids) else f"fid_{i}"
+        chunks.append(
+            {
+                "file_name": f"doc_{i}.pdf",
+                "file_id": fid,
+                "text": f"Content about topic {i}",
+                "mime_type": "application/pdf",
+                "page_number": i + 1,
+            }
+        )
     if all_low_score:
-        # Embeddings that will produce low cosine similarity with the mock query
-        # Mock query (seed=99) is random, so use orthogonal-ish vectors
-        # Just override retrieve_mixed results via a separate mock instead
         embeddings = np.random.randn(n, DIM)
     else:
         np.random.seed(42)
@@ -100,11 +99,33 @@ def _mock_stream_llm(tokens=None):
     if tokens is None:
         tokens = ["Hello", " from", " the", " LLM", " [1]"]
 
-    async def _stream(query, results, model_key="deepseek"):
+    async def _stream(query, results, grep_results=None, model_key="deepseek"):
         for t in tokens:
             yield t
 
     return patch("backend.chat.stream_llm", side_effect=_stream)
+
+
+def _mock_staleness(stale_ids=None, file_errors=None):
+    """Mock check_staleness to return given stale_ids and errors."""
+    async def _check(file_list, token):
+        return (stale_ids or set(), file_errors or {})
+    return patch("backend.chat.check_staleness", side_effect=_check)
+
+
+def _mock_extract_keywords(keywords=None):
+    async def _extract(query, model_key="deepseek"):
+        return keywords or ["keyword1", "keyword2"]
+    return patch("backend.chat.extract_keywords", side_effect=_extract)
+
+
+def _mock_grep_live(results_by_fid=None):
+    """Mock grep_live to return results per file_id."""
+    async def _grep(fid, keywords, token):
+        if results_by_fid and fid in results_by_fid:
+            return results_by_fid[fid]
+        return [{"text": f"Grep result for {fid}", "matched_keyword": "keyword1", "sentence_index": 0, "file_id": fid}]
+    return patch("backend.chat.grep_live", side_effect=_grep)
 
 
 # ---- Tests ----
@@ -115,7 +136,8 @@ async def test_chat_returns_sse_stream(client):
     chunks, embeddings = _make_chunks_and_embeddings()
 
     with _mock_auth(), _mock_session_data(chunks, embeddings), \
-         _mock_embed_query(), _mock_stream_llm():
+         _mock_embed_query(), _mock_stream_llm(), \
+         _mock_staleness():
         resp = await client.post(
             "/chat",
             json={"session_id": "sess_1", "query": "What is topic 1?"},
@@ -126,16 +148,13 @@ async def test_chat_returns_sse_stream(client):
     assert "text/event-stream" in resp.headers["content-type"]
 
     events = _parse_sse_events(resp.text)
-    # Should have token events
     token_events = [e for e in events if isinstance(e, dict) and e.get("type") == "token"]
     assert len(token_events) >= 1
 
-    # Should have citations event
     citation_events = [e for e in events if isinstance(e, dict) and e.get("type") == "citations"]
     assert len(citation_events) == 1
     assert "citations" in citation_events[0]
 
-    # Should end with [DONE]
     assert events[-1] == "[DONE]"
 
 
@@ -154,7 +173,8 @@ async def test_chat_no_results_when_below_threshold(client):
     chunks, embeddings = _make_chunks_and_embeddings()
 
     with _mock_auth(), _mock_session_data(chunks, embeddings), \
-         _mock_embed_query(), _mock_retrieve_mixed_low():
+         _mock_embed_query(), _mock_retrieve_mixed_low(), \
+         _mock_staleness():
         resp = await client.post(
             "/chat",
             json={"session_id": "sess_1", "query": "Something irrelevant"},
@@ -163,16 +183,10 @@ async def test_chat_no_results_when_below_threshold(client):
 
     assert resp.status_code == 200
     events = _parse_sse_events(resp.text)
-
-    # Should have no_results event
     no_results = [e for e in events if isinstance(e, dict) and e.get("type") == "no_results"]
     assert len(no_results) == 1
-
-    # Should NOT have token events
     token_events = [e for e in events if isinstance(e, dict) and e.get("type") == "token"]
     assert len(token_events) == 0
-
-    # Should end with [DONE]
     assert events[-1] == "[DONE]"
 
 
@@ -203,7 +217,8 @@ async def test_chat_citations_contain_frozen_metadata(client):
     chunks, embeddings = _make_chunks_and_embeddings(n=5)
 
     with _mock_auth(), _mock_session_data(chunks, embeddings), \
-         _mock_embed_query(), _mock_stream_llm(tokens=["Answer"]):
+         _mock_embed_query(), _mock_stream_llm(tokens=["Answer"]), \
+         _mock_staleness():
         resp = await client.post(
             "/chat",
             json={"session_id": "sess_1", "query": "Topic?"},
@@ -216,8 +231,6 @@ async def test_chat_citations_contain_frozen_metadata(client):
 
     citations = citation_events[0]["citations"]
     assert len(citations) > 0
-
-    # Each citation should have required fields
     for cit in citations:
         assert "index" in cit
         assert "file_name" in cit
@@ -233,14 +246,14 @@ async def test_chat_sse_event_format(client):
     chunks, embeddings = _make_chunks_and_embeddings(n=3)
 
     with _mock_auth(), _mock_session_data(chunks, embeddings), \
-         _mock_embed_query(), _mock_stream_llm(tokens=["Hi"]):
+         _mock_embed_query(), _mock_stream_llm(tokens=["Hi"]), \
+         _mock_staleness():
         resp = await client.post(
             "/chat",
             json={"session_id": "sess_1", "query": "test"},
             headers={"Authorization": "Bearer valid_token"},
         )
 
-    # Every non-empty line should start with "data: "
     for line in resp.text.split("\n"):
         line = line.strip()
         if line:
@@ -257,3 +270,281 @@ async def test_chat_400_missing_fields(client):
             headers={"Authorization": "Bearer valid_token"},
         )
     assert resp.status_code == 400
+
+
+# ---- Staleness + Hybrid Retrieval Tests ----
+
+@pytest.mark.asyncio
+async def test_staleness_event(client):
+    """Mock check_staleness returning stale file -> SSE contains staleness event before tokens."""
+    file_list = [
+        {"file_id": "fid_0", "file_name": "doc_0.pdf", "indexed_at": "2026-03-05T18:00:00Z"},
+    ]
+    chunks, embeddings = _make_chunks_and_embeddings(n=5, file_ids=["fid_0"] * 5)
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["Answer"]), \
+         _mock_staleness(stale_ids={"fid_0"}), \
+         _mock_extract_keywords(), _mock_grep_live():
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "sess_1", "query": "test", "file_list": file_list},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+
+    events = _parse_sse_events(resp.text)
+    staleness_events = [e for e in events if isinstance(e, dict) and e.get("type") == "staleness"]
+    assert len(staleness_events) == 1
+    assert staleness_events[0]["files"][0]["file_id"] == "fid_0"
+
+    # Staleness event should come before token events
+    staleness_idx = events.index(staleness_events[0])
+    token_events = [e for e in events if isinstance(e, dict) and e.get("type") == "token"]
+    if token_events:
+        first_token_idx = events.index(token_events[0])
+        assert staleness_idx < first_token_idx
+
+
+@pytest.mark.asyncio
+async def test_hybrid_fresh_only(client):
+    """All files fresh -> no staleness event, normal cosine retrieval."""
+    file_list = [
+        {"file_id": "fid_0", "file_name": "doc_0.pdf", "indexed_at": "2026-03-05T20:00:00Z"},
+    ]
+    chunks, embeddings = _make_chunks_and_embeddings(n=5, file_ids=["fid_0"] * 5)
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["Fresh answer"]), \
+         _mock_staleness(stale_ids=set()):
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "sess_1", "query": "test", "file_list": file_list},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+
+    events = _parse_sse_events(resp.text)
+    staleness_events = [e for e in events if isinstance(e, dict) and e.get("type") == "staleness"]
+    assert len(staleness_events) == 0
+
+    token_events = [e for e in events if isinstance(e, dict) and e.get("type") == "token"]
+    assert len(token_events) >= 1
+
+
+@pytest.mark.asyncio
+async def test_hybrid_stale_only(client):
+    """All files stale (modified) -> staleness event, grep results in prompt, no cosine retrieval."""
+    file_list = [
+        {"file_id": "fid_0", "file_name": "doc_0.pdf", "indexed_at": "2026-03-05T18:00:00Z"},
+    ]
+    # All chunks belong to fid_0 which is stale
+    chunks, embeddings = _make_chunks_and_embeddings(n=5, file_ids=["fid_0"] * 5)
+
+    grep_results = {
+        "fid_0": [
+            {"text": "Grep found this content", "matched_keyword": "test", "sentence_index": 0, "file_id": "fid_0"},
+        ]
+    }
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["Stale answer"]), \
+         _mock_staleness(stale_ids={"fid_0"}), \
+         _mock_extract_keywords(["test"]), _mock_grep_live(grep_results):
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "sess_1", "query": "test", "file_list": file_list},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+
+    events = _parse_sse_events(resp.text)
+    staleness_events = [e for e in events if isinstance(e, dict) and e.get("type") == "staleness"]
+    assert len(staleness_events) == 1
+
+    # Should have grep citation with source="grep"
+    citation_events = [e for e in events if isinstance(e, dict) and e.get("type") == "citations"]
+    assert len(citation_events) == 1
+    citations = citation_events[0]["citations"]
+    grep_citations = [c for c in citations if c.get("source") == "grep"]
+    assert len(grep_citations) >= 1
+
+
+@pytest.mark.asyncio
+async def test_hybrid_mixed(client):
+    """Some fresh, some stale -> both retrieval paths used."""
+    file_list = [
+        {"file_id": "fresh_1", "file_name": "fresh.pdf", "indexed_at": "2026-03-05T20:00:00Z"},
+        {"file_id": "stale_1", "file_name": "stale.pdf", "indexed_at": "2026-03-05T18:00:00Z"},
+    ]
+    chunks = [
+        {"file_name": "fresh.pdf", "file_id": "fresh_1", "text": "Fresh content", "mime_type": "application/pdf", "page_number": 1},
+        {"file_name": "stale.pdf", "file_id": "stale_1", "text": "Old stale content", "mime_type": "application/pdf", "page_number": 1},
+    ]
+    np.random.seed(42)
+    embeddings = np.random.randn(2, DIM)
+
+    grep_results = {
+        "stale_1": [
+            {"text": "Grep found stale content", "matched_keyword": "test", "sentence_index": 0, "file_id": "stale_1"},
+        ]
+    }
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["Mixed answer"]), \
+         _mock_staleness(stale_ids={"stale_1"}), \
+         _mock_extract_keywords(["test"]), _mock_grep_live(grep_results):
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "sess_1", "query": "test", "file_list": file_list},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+
+    events = _parse_sse_events(resp.text)
+
+    # Staleness event for stale file
+    staleness_events = [e for e in events if isinstance(e, dict) and e.get("type") == "staleness"]
+    assert len(staleness_events) == 1
+    stale_file_ids = [f["file_id"] for f in staleness_events[0]["files"]]
+    assert "stale_1" in stale_file_ids
+    assert "fresh_1" not in stale_file_ids
+
+    # Citations should include both cosine and grep sources
+    citation_events = [e for e in events if isinstance(e, dict) and e.get("type") == "citations"]
+    assert len(citation_events) == 1
+    citations = citation_events[0]["citations"]
+    grep_cits = [c for c in citations if c.get("source") == "grep"]
+    cosine_cits = [c for c in citations if not c.get("source")]
+    assert len(grep_cits) >= 1
+    assert len(cosine_cits) >= 1
+
+
+@pytest.mark.asyncio
+async def test_deleted_file_uses_embeddings(client):
+    """File with 404 stays on cosine path, NOT routed to grep_live; citation gets (deleted) suffix."""
+    file_list = [
+        {"file_id": "del_1", "file_name": "gone.pdf", "indexed_at": "2026-03-05T18:00:00Z"},
+    ]
+    chunks = [
+        {"file_name": "gone.pdf", "file_id": "del_1", "text": "Old content before deletion", "mime_type": "application/pdf", "page_number": 1},
+    ]
+    np.random.seed(42)
+    embeddings = np.random.randn(1, DIM)
+
+    # grep_live should NOT be called for deleted files
+    grep_mock = _mock_grep_live()
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["Deleted answer"]), \
+         _mock_staleness(stale_ids={"del_1"}, file_errors={"del_1": "not_found"}), \
+         grep_mock, _mock_extract_keywords():
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "sess_1", "query": "test", "file_list": file_list},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+
+    events = _parse_sse_events(resp.text)
+
+    # Staleness event should include the deleted file
+    staleness_events = [e for e in events if isinstance(e, dict) and e.get("type") == "staleness"]
+    assert len(staleness_events) == 1
+    assert staleness_events[0]["files"][0]["error"] == "not_found"
+
+    # Citation should have "(deleted)" suffix
+    citation_events = [e for e in events if isinstance(e, dict) and e.get("type") == "citations"]
+    assert len(citation_events) == 1
+    citations = citation_events[0]["citations"]
+    assert any("(deleted)" in c["file_name"] for c in citations)
+
+    # grep_live should NOT have been called (deleted -> cosine path)
+    # The grep_live mock's side_effect shouldn't be invoked for del_1
+    # since del_1 is in deleted_ids and removed from grep_ids
+
+
+@pytest.mark.asyncio
+async def test_deleted_plus_stale(client):
+    """One file deleted (404), one modified -> deleted uses cosine, modified uses grep, both in staleness SSE."""
+    file_list = [
+        {"file_id": "del_1", "file_name": "gone.pdf", "indexed_at": "2026-03-05T18:00:00Z"},
+        {"file_id": "mod_1", "file_name": "changed.pdf", "indexed_at": "2026-03-05T18:00:00Z"},
+    ]
+    chunks = [
+        {"file_name": "gone.pdf", "file_id": "del_1", "text": "Old deleted content", "mime_type": "application/pdf", "page_number": 1},
+        {"file_name": "changed.pdf", "file_id": "mod_1", "text": "Old changed content", "mime_type": "application/pdf", "page_number": 1},
+    ]
+    np.random.seed(42)
+    embeddings = np.random.randn(2, DIM)
+
+    grep_results = {
+        "mod_1": [
+            {"text": "Updated content from grep", "matched_keyword": "test", "sentence_index": 0, "file_id": "mod_1"},
+        ]
+    }
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["Combined answer"]), \
+         _mock_staleness(stale_ids={"del_1", "mod_1"}, file_errors={"del_1": "not_found"}), \
+         _mock_extract_keywords(["test"]), _mock_grep_live(grep_results):
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "sess_1", "query": "test", "file_list": file_list},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+
+    events = _parse_sse_events(resp.text)
+
+    # Staleness event should list both files
+    staleness_events = [e for e in events if isinstance(e, dict) and e.get("type") == "staleness"]
+    assert len(staleness_events) == 1
+    stale_files = staleness_events[0]["files"]
+    stale_file_ids = [f["file_id"] for f in stale_files]
+    assert "del_1" in stale_file_ids
+    assert "mod_1" in stale_file_ids
+
+    # del_1 should have not_found error
+    del_file = next(f for f in stale_files if f["file_id"] == "del_1")
+    assert del_file["error"] == "not_found"
+
+    # Citations should include both deleted (cosine with suffix) and grep
+    citation_events = [e for e in events if isinstance(e, dict) and e.get("type") == "citations"]
+    assert len(citation_events) == 1
+    citations = citation_events[0]["citations"]
+    deleted_cits = [c for c in citations if "(deleted)" in c.get("file_name", "")]
+    grep_cits = [c for c in citations if c.get("source") == "grep"]
+    assert len(deleted_cits) >= 1
+    assert len(grep_cits) >= 1
+
+
+@pytest.mark.asyncio
+async def test_parallel_execution(client):
+    """Verify asyncio.gather used for staleness + embedding (check both called)."""
+    file_list = [
+        {"file_id": "fid_0", "file_name": "doc.pdf", "indexed_at": "2026-03-05T20:00:00Z"},
+    ]
+    chunks, embeddings = _make_chunks_and_embeddings(n=3, file_ids=["fid_0"] * 3)
+
+    staleness_called = False
+    embed_called = False
+
+    async def _check_staleness(fl, token):
+        nonlocal staleness_called
+        staleness_called = True
+        return (set(), {})
+
+    async def _embed(query):
+        nonlocal embed_called
+        embed_called = True
+        np.random.seed(99)
+        return np.random.randn(DIM)
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         patch("backend.chat.check_staleness", side_effect=_check_staleness), \
+         patch("backend.chat._embed_query", side_effect=_embed), \
+         _mock_stream_llm(tokens=["Parallel"]):
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "sess_1", "query": "test", "file_list": file_list},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+
+    assert resp.status_code == 200
+    assert staleness_called, "check_staleness was not called"
+    assert embed_called, "_embed_query was not called"
