@@ -10,7 +10,7 @@
 - [ ] **AUTH-01**: User can sign in with Google via Token Client flow (drive.readonly scope)
 - [ ] **AUTH-02**: Access token stored in sessionStorage, attached as Authorization header to all API calls
 - [ ] **AUTH-03**: User sees re-auth banner when token expires (Drive 403), sessionStorage cleared automatically
-- [ ] **AUTH-04**: User identity derived from Google sub claim server-side on every request
+- [x] **AUTH-04**: User identity derived from Google sub claim server-side on every request
 
 ### Indexing
 
@@ -63,10 +63,10 @@
 
 ### Backend Infrastructure
 
-- [ ] **INFR-01**: Modal app with FastAPI, Volume mount at /data, OpenAI + DeepSeek secrets
-- [ ] **INFR-02**: CORS configured with explicit origins (localhost:5173 + production domain)
+- [x] **INFR-01**: Modal app with FastAPI, Volume mount at /data, OpenAI + DeepSeek secrets
+- [x] **INFR-02**: CORS configured with explicit origins (localhost:5173 + production domain)
 - [ ] **INFR-03**: Rate limiting on /chat: 10 requests/minute per session (in-memory)
-- [ ] **INFR-04**: Model strategy: DeepSeek default, configurable model key, OpenAI-compatible client swap
+- [x] **INFR-04**: Model strategy: DeepSeek default, configurable model key, OpenAI-compatible client swap
 
 ### Local Persistence
 
@@ -120,7 +120,7 @@
 | AUTH-01 | Phase 1 | Pending |
 | AUTH-02 | Phase 1 | Pending |
 | AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Complete |
 | INDX-01 | Phase 2 | Pending |
 | INDX-02 | Phase 2 | Pending |
 | INDX-03 | Phase 2 | Pending |
@@ -158,10 +158,10 @@
 | UI-08 | Phase 5 | Pending |
 | UI-09 | Phase 5 | Pending |
 | UI-10 | Phase 5 | Pending |
-| INFR-01 | Phase 1 | Pending |
-| INFR-02 | Phase 1 | Pending |
+| INFR-01 | Phase 1 | Complete |
+| INFR-02 | Phase 1 | Complete |
 | INFR-03 | Phase 5 | Pending |
-| INFR-04 | Phase 1 | Pending |
+| INFR-04 | Phase 1 | Complete |
 | PERS-01 | Phase 1 | Pending |
 | PERS-02 | Phase 1 | Pending |
 | PERS-03 | Phase 1 | Pending |
