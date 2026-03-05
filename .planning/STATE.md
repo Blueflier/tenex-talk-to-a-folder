@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-03-05T22:22:18.139Z"
-last_activity: 2026-03-05 -- Completed 03-03 citation persistence + empty state
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-05T22:25:21.000Z"
+last_activity: 2026-03-05 -- Completed 02-02 batch embedding + volume storage
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 5
-  percent: 38
+  completed_plans: 6
+  percent: 46
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2025-03-05)
 
 **Core value:** Users get accurate, cited answers from their own Google Drive files -- every citation points to the exact file, page, and passage.
-**Current focus:** Phase 4: Staleness + Hybrid Retrieval
+**Current focus:** Phase 2: Indexing Pipeline
 
 ## Current Position
 
-Phase: 3 of 6 (Retrieval + Chat) -- COMPLETE
-Plan: 3 of 3 in current phase (all done)
+Phase: 2 of 6 (Indexing Pipeline)
+Plan: 2 of 4 in current phase
 Status: Executing
-Last activity: 2026-03-05 -- Completed 03-03 citation persistence + empty state
+Last activity: 2026-03-05 -- Completed 02-02 batch embedding + volume storage
 
-Progress: [████░░░░░░] 38%
+Progress: [█████░░░░░] 46%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 3.6min
-- Total execution time: 0.30 hours
+- Total plans completed: 6
+- Average duration: 3.3min
+- Total execution time: 0.33 hours
 
 **By Phase:**
 
@@ -45,9 +45,10 @@ Progress: [████░░░░░░] 38%
 |-------|-------|-------|----------|
 | 01-foundation-auth | 2 | 7min | 3.5min |
 | 03-retrieval-chat | 3 | 11min | 3.7min |
+| 02-indexing-pipeline | 1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2min), 01-02 (5min), 03-01 (4min), 03-02 (3min), 03-03 (4min)
+- Last 5 plans: 01-02 (5min), 03-01 (4min), 03-02 (3min), 03-03 (4min), 02-02 (2min)
 - Trend: Steady
 
 *Updated after each plan completion*
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 03-03]: loadMessages sorts client-side after getAll for simplicity
 - [Phase 03-03]: ChatInput prefill prop pattern for suggestion auto-fill
 - [Phase 03-03]: Test files alongside source matching project convention
+- [Phase 02-02]: base_path parameter on storage functions for testability instead of monkeypatching
+- [Phase 02-02]: on_progress is async callable for SSE streaming compatibility
 
 ### Pending Todos
 
@@ -84,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T22:17:30Z
-Stopped at: Completed 03-03-PLAN.md
-Resume file: .planning/phases/04-staleness-hybrid-retrieval/04-01-PLAN.md
+Last session: 2026-03-05T22:25:21Z
+Stopped at: Completed 02-02-PLAN.md
+Resume file: .planning/phases/02-indexing-pipeline/02-03-PLAN.md

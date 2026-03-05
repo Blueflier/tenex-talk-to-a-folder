@@ -23,9 +23,9 @@
 - [ ] **INDX-07**: TXT/MD files chunked with recursive character splitter (1200 chars, 150 overlap)
 - [ ] **INDX-08**: Unsupported files (images, videos, ZIP) detected and skipped with reason
 - [ ] **INDX-09**: Two-phase SSE progress streaming (extraction per-file, then embedding per-chunk)
-- [ ] **INDX-10**: Chunks embedded in batches of 100 via OpenAI text-embedding-3-small
-- [ ] **INDX-11**: Embeddings (.npy) and chunks (.json) saved to Modal Volume namespaced by user_id/session_id
-- [ ] **INDX-12**: volume.commit() called after every write to prevent data loss
+- [x] **INDX-10**: Chunks embedded in batches of 100 via OpenAI text-embedding-3-small
+- [x] **INDX-11**: Embeddings (.npy) and chunks (.json) saved to Modal Volume namespaced by user_id/session_id
+- [x] **INDX-12**: volume.commit() called after every write to prevent data loss
 - [ ] **INDX-13**: Duplicate upload detection by Drive file ID against IndexedDB before indexing
 - [ ] **INDX-14**: Multi-link sessions: pasting additional links appends to existing session embeddings
 
@@ -130,9 +130,9 @@
 | INDX-07 | Phase 2 | Pending |
 | INDX-08 | Phase 2 | Pending |
 | INDX-09 | Phase 2 | Pending |
-| INDX-10 | Phase 2 | Pending |
-| INDX-11 | Phase 2 | Pending |
-| INDX-12 | Phase 2 | Pending |
+| INDX-10 | Phase 2 | Complete |
+| INDX-11 | Phase 2 | Complete |
+| INDX-12 | Phase 2 | Complete |
 | INDX-13 | Phase 5 | Pending |
 | INDX-14 | Phase 5 | Pending |
 | RETR-01 | Phase 3 | Complete |
