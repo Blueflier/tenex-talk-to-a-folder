@@ -48,11 +48,13 @@ Plans:
   3. Unsupported files (images, videos, ZIP) appear as skipped with a reason shown
   4. Embeddings and chunk metadata are saved to Modal Volume namespaced by user/session, with volume.commit() after every write
   5. Two-phase SSE progress streams: extraction per-file, then embedding per-chunk
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Drive link resolution, file export, and type-specific chunking (TDD)
+- [ ] 02-02-PLAN.md — Batch embedding and Modal Volume storage (TDD)
+- [ ] 02-03-PLAN.md — POST /index SSE streaming endpoint wiring all backend modules
+- [ ] 02-04-PLAN.md — Frontend indexing UI: ChatInput, IndexingModal, progress components
 
 ### Phase 3: Retrieval + Chat
 **Goal**: User can ask questions about indexed files and receive streaming answers with exact file/page/passage citations
@@ -81,12 +83,11 @@ Plans:
   3. LLM generates keyword variants for grep_live; grep returns up to 15 matches with context windows
   4. User sees a yellow staleness warning banner per stale file before answer tokens stream
   5. User can click "Re-index this file" to replace only that file's chunks in the session
-**Plans**: 3 plans
+**Plans**: TBD
 
 Plans:
-- [ ] 04-01-PLAN.md — Backend staleness detection, grep_live, hybrid /chat routing
-- [ ] 04-02-PLAN.md — Frontend staleness banners, useStream staleness events, stale_files persistence
-- [ ] 04-03-PLAN.md — Per-file re-indexing endpoint and frontend ReindexButton wiring
+- [ ] 04-01: TBD
+- [ ] 04-02: TBD
 
 ### Phase 5: Multi-session + Polish
 **Goal**: User can manage multiple chat sessions with full error handling and production-quality UX
@@ -127,8 +128,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Auth | 0/3 | Planning | - |
-| 2. Indexing Pipeline | 0/? | Not started | - |
+| 2. Indexing Pipeline | 0/4 | Planning | - |
 | 3. Retrieval + Chat | 0/3 | Planning | - |
-| 4. Staleness + Hybrid Retrieval | 0/3 | Planning | - |
+| 4. Staleness + Hybrid Retrieval | 0/? | Not started | - |
 | 5. Multi-session + Polish | 0/? | Not started | - |
 | 6. Eval Harness | 0/? | Not started | - |
