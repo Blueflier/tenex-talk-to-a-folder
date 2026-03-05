@@ -8,6 +8,10 @@ volume = modal.Volume.from_name("talk-to-a-folder-data", create_if_missing=True)
 
 web_app = FastAPI()
 
+from backend.chat import router as chat_router  # noqa: E402
+
+web_app.include_router(chat_router)
+
 web_app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
