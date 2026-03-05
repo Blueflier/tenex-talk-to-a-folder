@@ -54,8 +54,8 @@
 - [ ] **UI-02**: Left sidebar with chat list loaded from IndexedDB, sorted by recency
 - [ ] **UI-03**: New Chat button generates UUID session_id, creates IndexedDB record
 - [ ] **UI-04**: Chat title defaults to first indexed source name, user can click to rename
-- [ ] **UI-05**: Chat input bar with Drive link paste zone
-- [ ] **UI-06**: Indexing progress: two-phase progress bars (extraction, embedding)
+- [x] **UI-05**: Chat input bar with Drive link paste zone
+- [x] **UI-06**: Indexing progress: two-phase progress bars (extraction, embedding)
 - [x] **UI-07**: Citation rendering: PDF as "file.pdf, p.7", Sheet as "file.csv, row 12", Slides as "deck, slide 3"
 - [ ] **UI-08**: Error banners for all failure modes (403, 404, empty folder, scanned PDF, connection lost, etc.)
 - [ ] **UI-09**: Rate limit feedback: 429 response shown to user
@@ -152,8 +152,8 @@
 | UI-02 | Phase 5 | Pending |
 | UI-03 | Phase 5 | Pending |
 | UI-04 | Phase 5 | Pending |
-| UI-05 | Phase 2 | Pending |
-| UI-06 | Phase 2 | Pending |
+| UI-05 | Phase 2 | Complete |
+| UI-06 | Phase 2 | Complete |
 | UI-07 | Phase 3 | Complete |
 | UI-08 | Phase 5 | Pending |
 | UI-09 | Phase 5 | Pending |

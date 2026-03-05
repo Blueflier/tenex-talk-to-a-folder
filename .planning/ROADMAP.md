@@ -13,7 +13,7 @@ Deliver a RAG chat app that ingests Google Drive files and answers questions wit
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation + Auth** - Backend scaffold, Google OAuth, frontend shell, IndexedDB stores (completed 2026-03-05)
-- [ ] **Phase 2: Indexing Pipeline** - Drive link resolution, file extraction, chunking, embedding, Modal Volume storage
+- [x] **Phase 2: Indexing Pipeline** - Drive link resolution, file extraction, chunking, embedding, Modal Volume storage (completed 2026-03-05)
 - [ ] **Phase 3: Retrieval + Chat** - Cosine similarity retrieval, streaming LLM responses with inline citations
 - [ ] **Phase 4: Staleness + Hybrid Retrieval** - Staleness detection, grep_live for stale files, per-file re-indexing
 - [ ] **Phase 5: Multi-session + Polish** - Sidebar chat management, duplicate detection, multi-link, error states, rate limiting
@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Auth | 3/3 | Complete   | 2026-03-05 |
-| 2. Indexing Pipeline | 3/4 | In Progress|  |
+| 2. Indexing Pipeline | 4/4 | Complete   | 2026-03-05 |
 | 3. Retrieval + Chat | 3/3 | Complete | 2026-03-05 |
 | 4. Staleness + Hybrid Retrieval | 3/3 | Complete | 2026-03-05 |
 | 5. Multi-session + Polish | 0/? | Not started | - |
