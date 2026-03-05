@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-05T23:13:38.375Z"
+last_updated: "2026-03-05T23:14:59.875Z"
 last_activity: 2026-03-05 -- Completed 04-03 per-file re-indexing + ReindexButton
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2025-03-05)
 
 **Core value:** Users get accurate, cited answers from their own Google Drive files -- every citation points to the exact file, page, and passage.
-**Current focus:** Phase 4: Staleness + Hybrid Retrieval
+**Current focus:** Phase 1: Foundation + Auth (completing remaining plan)
 
 ## Current Position
 
-Phase: 4 of 6 (Staleness + Hybrid Retrieval) -- COMPLETE
+Phase: 1 of 6 (Foundation + Auth) -- COMPLETE
 Plan: 3 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-05 -- Completed 04-03 per-file re-indexing + ReindexButton
+Last activity: 2026-03-05 -- Completed 01-03 Google OAuth + landing page + auth-aware API client
 
-Progress: [████████░░] 85%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
@@ -43,7 +43,7 @@ Progress: [████████░░] 85%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation-auth | 2 | 7min | 3.5min |
+| 01-foundation-auth | 3 | 19min | 6.3min |
 | 03-retrieval-chat | 3 | 11min | 3.7min |
 | 02-indexing-pipeline | 1 | 2min | 2min |
 
@@ -57,6 +57,7 @@ Progress: [████████░░] 85%
 | Phase 04-staleness-hybrid-retrieval P02 | 3min | 1 task | 8 files |
 | Phase 04-staleness-hybrid-retrieval P03 | 5min | 2 tasks | 12 files |
 | Phase 02-indexing-pipeline P03 | 2min | 1 tasks | 3 files |
+| Phase 01-foundation-auth P03 | 12min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,9 @@ Recent decisions affecting current work:
 - [Phase 04-03]: disabledTooltip prop on ChatInput for contextual send-button tooltip
 - [Phase 02-03]: SSE uses named events (event: extraction, etc.) not data-only format
 - [Phase 02-03]: Pydantic IndexRequest model for request validation instead of raw request.json()
+- [Phase 01-03]: Google Token Client with custom button (not renderButton) per GIS best practices
+- [Phase 01-03]: sessionStorage for access token (cleared on tab close, no refresh tokens)
+- [Phase 01-03]: apiFetch clears token and throws TOKEN_EXPIRED on 401/403 responses
 
 ### Pending Todos
 
@@ -104,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T23:13:38.373Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-03-06T00:00:00Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None

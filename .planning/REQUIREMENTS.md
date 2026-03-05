@@ -7,9 +7,9 @@
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can sign in with Google via Token Client flow (drive.readonly scope)
-- [ ] **AUTH-02**: Access token stored in sessionStorage, attached as Authorization header to all API calls
-- [ ] **AUTH-03**: User sees re-auth banner when token expires (Drive 403), sessionStorage cleared automatically
+- [x] **AUTH-01**: User can sign in with Google via Token Client flow (drive.readonly scope)
+- [x] **AUTH-02**: Access token stored in sessionStorage, attached as Authorization header to all API calls
+- [x] **AUTH-03**: User sees re-auth banner when token expires (Drive 403), sessionStorage cleared automatically
 - [x] **AUTH-04**: User identity derived from Google sub claim server-side on every request
 
 ### Indexing
@@ -50,7 +50,7 @@
 
 ### Frontend UI
 
-- [ ] **UI-01**: Landing page with "Sign in with Google" button and privacy messaging
+- [x] **UI-01**: Landing page with "Sign in with Google" button and privacy messaging
 - [ ] **UI-02**: Left sidebar with chat list loaded from IndexedDB, sorted by recency
 - [ ] **UI-03**: New Chat button generates UUID session_id, creates IndexedDB record
 - [ ] **UI-04**: Chat title defaults to first indexed source name, user can click to rename
@@ -117,9 +117,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
 | AUTH-04 | Phase 1 | Complete |
 | INDX-01 | Phase 2 | Complete |
 | INDX-02 | Phase 2 | Complete |
@@ -148,7 +148,7 @@
 | CHAT-04 | Phase 3 | Complete |
 | CHAT-05 | Phase 4 | Complete |
 | CHAT-06 | Phase 3 | Complete |
-| UI-01 | Phase 1 | Pending |
+| UI-01 | Phase 1 | Complete |
 | UI-02 | Phase 5 | Pending |
 | UI-03 | Phase 5 | Pending |
 | UI-04 | Phase 5 | Pending |
