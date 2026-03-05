@@ -71,7 +71,7 @@ Plans:
 Plans:
 - [ ] 03-01-PLAN.md — Backend retrieval engine + /chat SSE streaming endpoint
 - [x] 03-02-PLAN.md — Frontend chat UI components, useStream hook, citation rendering
-- [ ] 03-03-PLAN.md — Citation persistence to IndexedDB, auth guard, empty state suggestions
+- [x] 03-03-PLAN.md — Citation persistence to IndexedDB, auth guard, empty state suggestions
 
 ### Phase 4: Staleness + Hybrid Retrieval
 **Goal**: Users always get answers from the latest file content, even when Drive files have changed since indexing
@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Foundation + Auth | 0/3 | Planning | - |
 | 2. Indexing Pipeline | 0/4 | Planning | - |
-| 3. Retrieval + Chat | 2/3 | In Progress|  |
+| 3. Retrieval + Chat | 3/3 | Complete | 2026-03-05 |
 | 4. Staleness + Hybrid Retrieval | 0/? | Not started | - |
 | 5. Multi-session + Polish | 0/? | Not started | - |
 | 6. Eval Harness | 0/? | Not started | - |

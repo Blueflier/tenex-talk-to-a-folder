@@ -43,7 +43,7 @@
 
 - [x] **CHAT-01**: SSE streaming response via fetch + ReadableStream (POST /chat)
 - [x] **CHAT-02**: Inline [N] citations in LLM responses pointing to source file, page, and passage
-- [ ] **CHAT-03**: Citation metadata frozen on message at answer time (survives file changes)
+- [x] **CHAT-03**: Citation metadata frozen on message at answer time (survives file changes)
 - [x] **CHAT-04**: System prompt constrains LLM to answer only from provided sources
 - [ ] **CHAT-05**: Staleness warning events streamed before answer tokens, yellow banner per stale file
 - [x] **CHAT-06**: Citations event sent after stream completes, stored to IndexedDB on message
@@ -73,7 +73,7 @@
 - [x] **PERS-01**: IndexedDB "chats" store: session_id, title, created_at, last_message_at, indexed_sources[]
 - [x] **PERS-02**: IndexedDB "messages" store: session_id (indexed), role, content, citations[], created_at
 - [x] **PERS-03**: Chat history and messages load from IndexedDB with no server calls
-- [ ] **PERS-04**: Old chats readable without auth; new messages require valid token
+- [x] **PERS-04**: Old chats readable without auth; new messages require valid token
 
 ### Eval Harness
 
@@ -144,7 +144,7 @@
 | RETR-07 | Phase 4 | Pending |
 | CHAT-01 | Phase 3 | Complete |
 | CHAT-02 | Phase 3 | Complete |
-| CHAT-03 | Phase 3 | Pending |
+| CHAT-03 | Phase 3 | Complete |
 | CHAT-04 | Phase 3 | Complete |
 | CHAT-05 | Phase 4 | Pending |
 | CHAT-06 | Phase 3 | Complete |
@@ -165,7 +165,7 @@
 | PERS-01 | Phase 1 | Complete |
 | PERS-02 | Phase 1 | Complete |
 | PERS-03 | Phase 1 | Complete |
-| PERS-04 | Phase 3 | Pending |
+| PERS-04 | Phase 3 | Complete |
 | EVAL-01 | Phase 6 | Pending |
 | EVAL-02 | Phase 6 | Pending |
 | EVAL-03 | Phase 6 | Pending |
