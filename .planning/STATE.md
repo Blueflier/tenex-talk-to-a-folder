@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-03-05T23:11:00.000Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-03-05T23:13:38.375Z"
 last_activity: 2026-03-05 -- Completed 04-03 per-file re-indexing + ReindexButton
 progress:
   total_phases: 6
@@ -56,6 +56,7 @@ Progress: [████████░░] 85%
 | Phase 04-staleness-hybrid-retrieval P01 | 4min | 2 tasks | 6 files |
 | Phase 04-staleness-hybrid-retrieval P02 | 3min | 1 task | 8 files |
 | Phase 04-staleness-hybrid-retrieval P03 | 5min | 2 tasks | 12 files |
+| Phase 02-indexing-pipeline P03 | 2min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 04-03]: base_path parameter on reindex_file for testability (same as storage.py)
 - [Phase 04-03]: useReindex tracks per-file state with Set<string> for independent re-indexing
 - [Phase 04-03]: disabledTooltip prop on ChatInput for contextual send-button tooltip
+- [Phase 02-03]: SSE uses named events (event: extraction, etc.) not data-only format
+- [Phase 02-03]: Pydantic IndexRequest model for request validation instead of raw request.json()
 
 ### Pending Todos
 
@@ -101,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T23:11:00.000Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-03-05T23:13:38.373Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None

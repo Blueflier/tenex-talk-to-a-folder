@@ -22,7 +22,7 @@
 - [x] **INDX-06**: Google Slides exported as plain text, split per slide on double newline
 - [x] **INDX-07**: TXT/MD files chunked with recursive character splitter (1200 chars, 150 overlap)
 - [x] **INDX-08**: Unsupported files (images, videos, ZIP) detected and skipped with reason
-- [ ] **INDX-09**: Two-phase SSE progress streaming (extraction per-file, then embedding per-chunk)
+- [x] **INDX-09**: Two-phase SSE progress streaming (extraction per-file, then embedding per-chunk)
 - [x] **INDX-10**: Chunks embedded in batches of 100 via OpenAI text-embedding-3-small
 - [x] **INDX-11**: Embeddings (.npy) and chunks (.json) saved to Modal Volume namespaced by user_id/session_id
 - [x] **INDX-12**: volume.commit() called after every write to prevent data loss
@@ -129,7 +129,7 @@
 | INDX-06 | Phase 2 | Complete |
 | INDX-07 | Phase 2 | Complete |
 | INDX-08 | Phase 2 | Complete |
-| INDX-09 | Phase 2 | Pending |
+| INDX-09 | Phase 2 | Complete |
 | INDX-10 | Phase 2 | Complete |
 | INDX-11 | Phase 2 | Complete |
 | INDX-12 | Phase 2 | Complete |
