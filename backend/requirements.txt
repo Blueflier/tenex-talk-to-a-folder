@@ -1,0 +1,8 @@
+modal
+fastapi
+aiohttp
+openai
+numpy
+pytest
+pytest-asyncio
+httpx
