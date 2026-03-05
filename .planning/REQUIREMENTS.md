@@ -31,8 +31,8 @@
 
 ### Retrieval
 
-- [ ] **RETR-01**: Query embedded and compared via cosine similarity against session embeddings
-- [ ] **RETR-02**: Top-8 chunks returned for docs, top-5 for sheets
+- [x] **RETR-01**: Query embedded and compared via cosine similarity against session embeddings
+- [x] **RETR-02**: Top-8 chunks returned for docs, top-5 for sheets
 - [ ] **RETR-03**: Staleness detection: Drive metadata modifiedTime compared to indexed_at for all session files on each /chat
 - [ ] **RETR-04**: Fresh files use pre-computed embeddings; stale files routed to grep_live
 - [ ] **RETR-05**: LLM generates 8-12 keyword variants for grep_live queries
@@ -41,12 +41,12 @@
 
 ### Chat
 
-- [ ] **CHAT-01**: SSE streaming response via fetch + ReadableStream (POST /chat)
+- [x] **CHAT-01**: SSE streaming response via fetch + ReadableStream (POST /chat)
 - [ ] **CHAT-02**: Inline [N] citations in LLM responses pointing to source file, page, and passage
 - [ ] **CHAT-03**: Citation metadata frozen on message at answer time (survives file changes)
-- [ ] **CHAT-04**: System prompt constrains LLM to answer only from provided sources
+- [x] **CHAT-04**: System prompt constrains LLM to answer only from provided sources
 - [ ] **CHAT-05**: Staleness warning events streamed before answer tokens, yellow banner per stale file
-- [ ] **CHAT-06**: Citations event sent after stream completes, stored to IndexedDB on message
+- [x] **CHAT-06**: Citations event sent after stream completes, stored to IndexedDB on message
 
 ### Frontend UI
 
@@ -135,19 +135,19 @@
 | INDX-12 | Phase 2 | Pending |
 | INDX-13 | Phase 5 | Pending |
 | INDX-14 | Phase 5 | Pending |
-| RETR-01 | Phase 3 | Pending |
-| RETR-02 | Phase 3 | Pending |
+| RETR-01 | Phase 3 | Complete |
+| RETR-02 | Phase 3 | Complete |
 | RETR-03 | Phase 4 | Pending |
 | RETR-04 | Phase 4 | Pending |
 | RETR-05 | Phase 4 | Pending |
 | RETR-06 | Phase 4 | Pending |
 | RETR-07 | Phase 4 | Pending |
-| CHAT-01 | Phase 3 | Pending |
+| CHAT-01 | Phase 3 | Complete |
 | CHAT-02 | Phase 3 | Pending |
 | CHAT-03 | Phase 3 | Pending |
-| CHAT-04 | Phase 3 | Pending |
+| CHAT-04 | Phase 3 | Complete |
 | CHAT-05 | Phase 4 | Pending |
-| CHAT-06 | Phase 3 | Pending |
+| CHAT-06 | Phase 3 | Complete |
 | UI-01 | Phase 1 | Pending |
 | UI-02 | Phase 5 | Pending |
 | UI-03 | Phase 5 | Pending |
