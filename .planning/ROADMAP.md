@@ -81,11 +81,12 @@ Plans:
   3. LLM generates keyword variants for grep_live; grep returns up to 15 matches with context windows
   4. User sees a yellow staleness warning banner per stale file before answer tokens stream
   5. User can click "Re-index this file" to replace only that file's chunks in the session
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Backend staleness detection, grep_live, hybrid /chat routing
+- [ ] 04-02-PLAN.md — Frontend staleness banners, useStream staleness events, stale_files persistence
+- [ ] 04-03-PLAN.md — Per-file re-indexing endpoint and frontend ReindexButton wiring
 
 ### Phase 5: Multi-session + Polish
 **Goal**: User can manage multiple chat sessions with full error handling and production-quality UX
@@ -128,6 +129,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation + Auth | 0/3 | Planning | - |
 | 2. Indexing Pipeline | 0/? | Not started | - |
 | 3. Retrieval + Chat | 0/3 | Planning | - |
-| 4. Staleness + Hybrid Retrieval | 0/? | Not started | - |
+| 4. Staleness + Hybrid Retrieval | 0/3 | Planning | - |
 | 5. Multi-session + Polish | 0/? | Not started | - |
 | 6. Eval Harness | 0/? | Not started | - |
