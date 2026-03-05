@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-05T22:27:09.131Z"
-last_activity: 2026-03-05 -- Completed 02-02 batch embedding + volume storage
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-05T23:04:14.861Z"
+last_activity: 2026-03-05 -- Completed 04-01 backend staleness + hybrid retrieval
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 7
-  percent: 46
+  completed_plans: 9
+  percent: 69
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2025-03-05)
 
 **Core value:** Users get accurate, cited answers from their own Google Drive files -- every citation points to the exact file, page, and passage.
-**Current focus:** Phase 2: Indexing Pipeline
+**Current focus:** Phase 4: Staleness + Hybrid Retrieval
 
 ## Current Position
 
-Phase: 2 of 6 (Indexing Pipeline)
-Plan: 2 of 4 in current phase
+Phase: 4 of 6 (Staleness + Hybrid Retrieval)
+Plan: 2 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-05 -- Completed 02-02 batch embedding + volume storage
+Last activity: 2026-03-05 -- Completed 04-01 backend staleness + hybrid retrieval
 
-Progress: [█████░░░░░] 46%
+Progress: [███████░░░] 69%
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [█████░░░░░] 46%
 
 *Updated after each plan completion*
 | Phase 02-indexing-pipeline P01 | 3min | 2 tasks | 5 files |
+| Phase 04-staleness-hybrid-retrieval P01 | 4min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,11 @@ Recent decisions affecting current work:
 - [Phase 02-01]: Pinned fastapi>=0.135.0 for native SSE support
 - [Phase 02-02]: base_path parameter on storage functions for testability instead of monkeypatching
 - [Phase 02-02]: on_progress is async callable for SSE streaming compatibility
+- [Phase 04-01]: Three-way partition: deleted files (404) stay on cosine path per CONTEXT.md
+- [Phase 04-01]: Staleness SSE event emitted before tokens for immediate frontend banner
+- [Phase 04-01]: extract_keywords uses LLM with stopword fallback on parse failure
+- [Phase 04-01]: grep_live context windows include 1 sentence before and after match
+- [Phase 04-01]: Three-way partition: deleted files (404) stay on cosine path per CONTEXT.md
 
 ### Pending Todos
 
@@ -91,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T22:27:09.128Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-05T23:04:10.014Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
