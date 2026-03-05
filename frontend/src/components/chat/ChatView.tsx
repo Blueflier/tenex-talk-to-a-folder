@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Citation } from "@/lib/citations";
+import type { StalenessInfo } from "./StalenessBanner";
 import type { IndexedSource } from "@/lib/suggestions";
 import { saveMessage, loadMessages } from "@/lib/db";
 import { useStream } from "@/hooks/useStream";
@@ -32,8 +33,9 @@ export function ChatView({
     anchorEl: HTMLElement;
   } | null>(null);
 
-  // Track current streaming message citations
+  // Track current streaming message citations and stale files
   const pendingCitationsRef = useRef<Citation[]>([]);
+  const pendingStaleFilesRef = useRef<StalenessInfo[]>([]);
 
   // Load messages from IndexedDB on mount
   useEffect(() => {
@@ -44,6 +46,7 @@ export function ChatView({
             role: m.role,
             content: m.content,
             citations: (m.citations ?? []) as Citation[],
+            staleFiles: m.stale_files,
             isStreaming: false,
             isNoResults: false,
           }))
@@ -71,6 +74,16 @@ export function ChatView({
         const last = prev[prev.length - 1];
         if (last?.role === "assistant") {
           return [...prev.slice(0, -1), { ...last, citations }];
+        }
+        return prev;
+      });
+    },
+    onStaleness(files) {
+      pendingStaleFilesRef.current = files;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          return [...prev.slice(0, -1), { ...last, staleFiles: files }];
         }
         return prev;
       });
@@ -123,12 +136,15 @@ export function ChatView({
         if (last?.role === "assistant" && last.isStreaming) {
           const finalMsg = { ...last, isStreaming: false };
 
-          // Persist assistant message with frozen citations
+          // Persist assistant message with frozen citations and stale files
           saveMessage({
             session_id: sessionId,
             role: "assistant",
             content: finalMsg.content,
             citations: pendingCitationsRef.current,
+            stale_files: pendingStaleFilesRef.current.length > 0
+              ? pendingStaleFilesRef.current
+              : undefined,
             created_at: new Date().toISOString(),
           });
 
@@ -177,6 +193,7 @@ export function ChatView({
       };
 
       pendingCitationsRef.current = [];
+      pendingStaleFilesRef.current = [];
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
       sendMessage(sessionId, query, fileList, token);
     },
@@ -214,6 +231,7 @@ export function ChatView({
       ) : (
         <MessageList
           messages={messages}
+          sessionId={sessionId}
           onCitationClick={handleCitationClick}
         />
       )}

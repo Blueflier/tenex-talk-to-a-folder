@@ -5,6 +5,8 @@ import { CitationBadge } from "./CitationBadge";
 import { CitationFooter } from "./CitationFooter";
 import { StreamingCursor } from "./StreamingCursor";
 import { NoResultsMessage } from "./NoResultsMessage";
+import { StalenessBannerList } from "./StalenessBannerList";
+import type { StalenessInfo } from "./StalenessBanner";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -13,6 +15,8 @@ interface ChatMessageProps {
   isStreaming: boolean;
   isNoResults: boolean;
   onCitationClick: (index: number, anchorEl: HTMLElement) => void;
+  staleFiles?: StalenessInfo[];
+  sessionId?: string;
 }
 
 function renderContentWithCitations(
@@ -42,6 +46,8 @@ export function ChatMessage({
   isStreaming,
   isNoResults,
   onCitationClick,
+  staleFiles,
+  sessionId,
 }: ChatMessageProps) {
   const isUser = role === "user";
 
@@ -54,6 +60,9 @@ export function ChatMessage({
             : "bg-white dark:bg-zinc-800 text-foreground"
         }`}
       >
+        {!isUser && staleFiles && staleFiles.length > 0 && sessionId && (
+          <StalenessBannerList staleFiles={staleFiles} sessionId={sessionId} />
+        )}
         {isNoResults ? (
           <NoResultsMessage />
         ) : (

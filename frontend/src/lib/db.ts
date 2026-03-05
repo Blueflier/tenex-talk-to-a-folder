@@ -14,6 +14,7 @@ export interface Message {
   role: "user" | "assistant";
   content: string;
   citations: unknown[];
+  stale_files?: { file_name: string; file_id: string; error?: "not_found" | "access_denied" | null }[];
   created_at: string;
 }
 

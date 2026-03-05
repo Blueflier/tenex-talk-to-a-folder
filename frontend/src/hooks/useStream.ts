@@ -1,11 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 import type { Citation } from "@/lib/citations";
+import type { StalenessInfo } from "@/components/chat/StalenessBanner";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export interface UseStreamCallbacks {
   onToken: (content: string) => void;
   onCitations: (citations: Citation[]) => void;
+  onStaleness?: (files: StalenessInfo[]) => void;
   onNoResults: () => void;
   onError: (message: string) => void;
   onDone: () => void;
@@ -16,6 +18,7 @@ export function useStream(callbacks: UseStreamCallbacks) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const callbacksRef = useRef(callbacks);
   callbacksRef.current = callbacks;
+  const currentStaleFilesRef = useRef<StalenessInfo[]>([]);
 
   const abort = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -32,6 +35,7 @@ export function useStream(callbacks: UseStreamCallbacks) {
     ) => {
       // Abort any in-flight request
       abortControllerRef.current?.abort();
+      currentStaleFilesRef.current = [];
 
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -87,6 +91,7 @@ export function useStream(callbacks: UseStreamCallbacks) {
                 type: string;
                 content?: string;
                 citations?: Citation[];
+                files?: StalenessInfo[];
                 message?: string;
               };
 
@@ -97,6 +102,12 @@ export function useStream(callbacks: UseStreamCallbacks) {
                 case "citations":
                   if (event.citations)
                     callbacksRef.current.onCitations(event.citations);
+                  break;
+                case "staleness":
+                  if (event.files) {
+                    currentStaleFilesRef.current = event.files;
+                    callbacksRef.current.onStaleness?.(event.files);
+                  }
                   break;
                 case "no_results":
                   callbacksRef.current.onNoResults();
@@ -129,5 +140,5 @@ export function useStream(callbacks: UseStreamCallbacks) {
     []
   );
 
-  return { sendMessage, isStreaming, abort };
+  return { sendMessage, isStreaming, abort, currentStaleFilesRef };
 }

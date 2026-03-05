@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Citation } from "@/lib/citations";
+import type { StalenessInfo } from "./StalenessBanner";
 import { ChatMessage } from "./ChatMessage";
 
 export interface MessageData {
@@ -8,14 +9,16 @@ export interface MessageData {
   citations: Citation[];
   isStreaming: boolean;
   isNoResults: boolean;
+  staleFiles?: StalenessInfo[];
 }
 
 interface MessageListProps {
   messages: MessageData[];
+  sessionId: string;
   onCitationClick: (index: number, anchorEl: HTMLElement) => void;
 }
 
-export function MessageList({ messages, onCitationClick }: MessageListProps) {
+export function MessageList({ messages, sessionId, onCitationClick }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,6 +36,8 @@ export function MessageList({ messages, onCitationClick }: MessageListProps) {
           isStreaming={msg.isStreaming}
           isNoResults={msg.isNoResults}
           onCitationClick={onCitationClick}
+          staleFiles={msg.staleFiles}
+          sessionId={sessionId}
         />
       ))}
       <div ref={bottomRef} />
