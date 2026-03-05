@@ -1,0 +1,110 @@
+"""Keyword extraction and grep-based live retrieval for stale files."""
+from __future__ import annotations
+
+import json
+import re
+import time
+
+import aiohttp
+
+from backend.config import get_llm_client
+
+# Cache: file_id -> (text, fetched_at_epoch)
+_grep_text_cache: dict[str, tuple[str, float]] = {}
+GREP_TEXT_TTL = 300
+
+STOPWORDS = {
+    "what", "is", "the", "a", "an", "of", "in", "for", "and", "or",
+    "to", "it", "that", "this", "are", "was", "were", "be", "been",
+    "how", "do", "does", "did", "will", "would", "can", "could",
+    "should", "shall", "may", "might", "has", "have", "had",
+    "who", "which", "where", "when", "why", "with", "from", "by",
+    "on", "at", "but", "not", "no", "so", "if", "my", "your",
+}
+
+
+async def extract_keywords(query: str, model_key: str = "deepseek") -> list[str]:
+    """Extract 8-12 keyword variants from query via LLM, with stopword fallback."""
+    prompt = f"""Extract search keywords from this query for a keyword search over documents.
+Return 8-12 keyword variants: synonyms, abbreviations, related terms, and the original terms.
+Respond with ONLY a JSON array of strings. No explanation.
+
+Query: {query}
+
+Example output: ["revenue", "sales", "income", "ARR", "MRR", "earnings", "Q3 revenue"]"""
+
+    try:
+        client, model_name = get_llm_client()
+        response = await client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=200,
+            temperature=0,
+        )
+        text = response.choices[0].message.content.strip()
+
+        # Strip markdown code fences
+        text = re.sub(r"^```(?:json)?\s*\n?", "", text)
+        text = re.sub(r"\n?```\s*$", "", text)
+
+        parsed = json.loads(text)
+        if isinstance(parsed, list) and all(isinstance(k, str) for k in parsed):
+            return parsed
+    except (json.JSONDecodeError, Exception):
+        pass
+
+    # Fallback: split on spaces, strip stopwords, filter short words
+    return [w for w in query.lower().split() if w not in STOPWORDS and len(w) > 1]
+
+
+async def fetch_and_extract(file_id: str, access_token: str) -> str:
+    """Fetch file content from Google Drive and return extracted text."""
+    url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            url, headers={"Authorization": f"Bearer {access_token}"}
+        ) as r:
+            r.raise_for_status()
+            return await r.text()
+
+
+async def grep_live(
+    file_id: str, keywords: list[str], access_token: str
+) -> list[dict]:
+    """Search file text for keyword matches with context windows.
+
+    Returns up to 15 match dicts with text, matched_keyword, sentence_index, file_id.
+    Uses cached text within GREP_TEXT_TTL.
+    """
+    now = time.time()
+    cached = _grep_text_cache.get(file_id)
+
+    if cached and (now - cached[1]) < GREP_TEXT_TTL:
+        text = cached[0]
+    else:
+        text = await fetch_and_extract(file_id, access_token)
+        _grep_text_cache[file_id] = (text, time.time())
+
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    if not keywords:
+        return []
+
+    pattern = "|".join(re.escape(k) for k in keywords)
+    results = []
+
+    for i, sentence in enumerate(sentences):
+        match = re.search(pattern, sentence, re.IGNORECASE)
+        if match:
+            window = sentences[max(0, i - 1) : min(len(sentences), i + 2)]
+            results.append(
+                {
+                    "text": " ".join(window),
+                    "matched_keyword": match.group(0),
+                    "sentence_index": i,
+                    "file_id": file_id,
+                }
+            )
+        if len(results) >= 15:
+            break
+
+    return results

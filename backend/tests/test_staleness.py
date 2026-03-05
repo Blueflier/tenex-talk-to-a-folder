@@ -167,12 +167,14 @@ async def test_staleness_cache_expired():
 @pytest.mark.asyncio
 async def test_invalidate_caches():
     """invalidate_caches removes entries from both staleness and grep text caches."""
-    # Populate staleness cache
-    _staleness_cache["f1"] = (True, None, time.time())
+    from backend.grep import _grep_text_cache
 
-    # Populate grep text cache
-    with patch("backend.staleness.grep") as mock_grep:
-        mock_grep._grep_text_cache = {"f1": ("some text", time.time())}
-        invalidate_caches("f1")
-        assert "f1" not in _staleness_cache
-        assert "f1" not in mock_grep._grep_text_cache
+    # Populate both caches
+    _staleness_cache["f1"] = (True, None, time.time())
+    _grep_text_cache["f1"] = ("some text", time.time())
+
+    invalidate_caches("f1")
+
+    assert "f1" not in _staleness_cache
+    assert "f1" not in _grep_text_cache
+    _grep_text_cache.clear()
