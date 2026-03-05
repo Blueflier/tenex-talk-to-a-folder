@@ -117,65 +117,65 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| INDX-01 | TBD | Pending |
-| INDX-02 | TBD | Pending |
-| INDX-03 | TBD | Pending |
-| INDX-04 | TBD | Pending |
-| INDX-05 | TBD | Pending |
-| INDX-06 | TBD | Pending |
-| INDX-07 | TBD | Pending |
-| INDX-08 | TBD | Pending |
-| INDX-09 | TBD | Pending |
-| INDX-10 | TBD | Pending |
-| INDX-11 | TBD | Pending |
-| INDX-12 | TBD | Pending |
-| INDX-13 | TBD | Pending |
-| INDX-14 | TBD | Pending |
-| RETR-01 | TBD | Pending |
-| RETR-02 | TBD | Pending |
-| RETR-03 | TBD | Pending |
-| RETR-04 | TBD | Pending |
-| RETR-05 | TBD | Pending |
-| RETR-06 | TBD | Pending |
-| RETR-07 | TBD | Pending |
-| CHAT-01 | TBD | Pending |
-| CHAT-02 | TBD | Pending |
-| CHAT-03 | TBD | Pending |
-| CHAT-04 | TBD | Pending |
-| CHAT-05 | TBD | Pending |
-| CHAT-06 | TBD | Pending |
-| UI-01 | TBD | Pending |
-| UI-02 | TBD | Pending |
-| UI-03 | TBD | Pending |
-| UI-04 | TBD | Pending |
-| UI-05 | TBD | Pending |
-| UI-06 | TBD | Pending |
-| UI-07 | TBD | Pending |
-| UI-08 | TBD | Pending |
-| UI-09 | TBD | Pending |
-| UI-10 | TBD | Pending |
-| INFR-01 | TBD | Pending |
-| INFR-02 | TBD | Pending |
-| INFR-03 | TBD | Pending |
-| INFR-04 | TBD | Pending |
-| PERS-01 | TBD | Pending |
-| PERS-02 | TBD | Pending |
-| PERS-03 | TBD | Pending |
-| PERS-04 | TBD | Pending |
-| EVAL-01 | TBD | Pending |
-| EVAL-02 | TBD | Pending |
-| EVAL-03 | TBD | Pending |
-| EVAL-04 | TBD | Pending |
+| AUTH-01 | Phase 1 | Pending |
+| AUTH-02 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Pending |
+| INDX-01 | Phase 2 | Pending |
+| INDX-02 | Phase 2 | Pending |
+| INDX-03 | Phase 2 | Pending |
+| INDX-04 | Phase 2 | Pending |
+| INDX-05 | Phase 2 | Pending |
+| INDX-06 | Phase 2 | Pending |
+| INDX-07 | Phase 2 | Pending |
+| INDX-08 | Phase 2 | Pending |
+| INDX-09 | Phase 2 | Pending |
+| INDX-10 | Phase 2 | Pending |
+| INDX-11 | Phase 2 | Pending |
+| INDX-12 | Phase 2 | Pending |
+| INDX-13 | Phase 5 | Pending |
+| INDX-14 | Phase 5 | Pending |
+| RETR-01 | Phase 3 | Pending |
+| RETR-02 | Phase 3 | Pending |
+| RETR-03 | Phase 4 | Pending |
+| RETR-04 | Phase 4 | Pending |
+| RETR-05 | Phase 4 | Pending |
+| RETR-06 | Phase 4 | Pending |
+| RETR-07 | Phase 4 | Pending |
+| CHAT-01 | Phase 3 | Pending |
+| CHAT-02 | Phase 3 | Pending |
+| CHAT-03 | Phase 3 | Pending |
+| CHAT-04 | Phase 3 | Pending |
+| CHAT-05 | Phase 4 | Pending |
+| CHAT-06 | Phase 3 | Pending |
+| UI-01 | Phase 1 | Pending |
+| UI-02 | Phase 5 | Pending |
+| UI-03 | Phase 5 | Pending |
+| UI-04 | Phase 5 | Pending |
+| UI-05 | Phase 2 | Pending |
+| UI-06 | Phase 2 | Pending |
+| UI-07 | Phase 3 | Pending |
+| UI-08 | Phase 5 | Pending |
+| UI-09 | Phase 5 | Pending |
+| UI-10 | Phase 5 | Pending |
+| INFR-01 | Phase 1 | Pending |
+| INFR-02 | Phase 1 | Pending |
+| INFR-03 | Phase 5 | Pending |
+| INFR-04 | Phase 1 | Pending |
+| PERS-01 | Phase 1 | Pending |
+| PERS-02 | Phase 1 | Pending |
+| PERS-03 | Phase 1 | Pending |
+| PERS-04 | Phase 3 | Pending |
+| EVAL-01 | Phase 6 | Pending |
+| EVAL-02 | Phase 6 | Pending |
+| EVAL-03 | Phase 6 | Pending |
+| EVAL-04 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 46 total
-- Mapped to phases: 0
-- Unmapped: 46
+- v1 requirements: 53 total
+- Mapped to phases: 53
+- Unmapped: 0
 
 ---
 *Requirements defined: 2025-03-05*
-*Last updated: 2025-03-05 after initial definition*
+*Last updated: 2026-03-05 after roadmap creation*
