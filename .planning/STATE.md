@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-05T22:25:21.000Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-05T22:27:09.131Z"
 last_activity: 2026-03-05 -- Completed 02-02 batch embedding + volume storage
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 6
+  completed_plans: 7
   percent: 46
 ---
 
@@ -52,6 +52,7 @@ Progress: [█████░░░░░] 46%
 - Trend: Steady
 
 *Updated after each plan completion*
+| Phase 02-indexing-pipeline P01 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 03-03]: loadMessages sorts client-side after getAll for simplicity
 - [Phase 03-03]: ChatInput prefill prop pattern for suggestion auto-fill
 - [Phase 03-03]: Test files alongside source matching project convention
+- [Phase 02-01]: classify_file returns {supported, reason} dict for consistent unsupported-type handling
+- [Phase 02-01]: PDF test fixture generated programmatically via pymupdf instead of static file
+- [Phase 02-01]: Pinned fastapi>=0.135.0 for native SSE support
 - [Phase 02-02]: base_path parameter on storage functions for testability instead of monkeypatching
 - [Phase 02-02]: on_progress is async callable for SSE streaming compatibility
 
@@ -87,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T22:25:21Z
-Stopped at: Completed 02-02-PLAN.md
-Resume file: .planning/phases/02-indexing-pipeline/02-03-PLAN.md
+Last session: 2026-03-05T22:27:09.128Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None

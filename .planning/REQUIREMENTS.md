@@ -14,14 +14,14 @@
 
 ### Indexing
 
-- [ ] **INDX-01**: User can paste a Google Drive link (folder or single file) to start indexing
-- [ ] **INDX-02**: Backend resolves Drive link to file list via Drive API
-- [ ] **INDX-03**: Google Docs exported as plain text via Drive export API
-- [ ] **INDX-04**: PDFs extracted page-by-page via PyMuPDF with recursive chunking per page
-- [ ] **INDX-05**: Google Sheets exported as CSV, chunked row-level with headers prepended
-- [ ] **INDX-06**: Google Slides exported as plain text, split per slide on double newline
-- [ ] **INDX-07**: TXT/MD files chunked with recursive character splitter (1200 chars, 150 overlap)
-- [ ] **INDX-08**: Unsupported files (images, videos, ZIP) detected and skipped with reason
+- [x] **INDX-01**: User can paste a Google Drive link (folder or single file) to start indexing
+- [x] **INDX-02**: Backend resolves Drive link to file list via Drive API
+- [x] **INDX-03**: Google Docs exported as plain text via Drive export API
+- [x] **INDX-04**: PDFs extracted page-by-page via PyMuPDF with recursive chunking per page
+- [x] **INDX-05**: Google Sheets exported as CSV, chunked row-level with headers prepended
+- [x] **INDX-06**: Google Slides exported as plain text, split per slide on double newline
+- [x] **INDX-07**: TXT/MD files chunked with recursive character splitter (1200 chars, 150 overlap)
+- [x] **INDX-08**: Unsupported files (images, videos, ZIP) detected and skipped with reason
 - [ ] **INDX-09**: Two-phase SSE progress streaming (extraction per-file, then embedding per-chunk)
 - [x] **INDX-10**: Chunks embedded in batches of 100 via OpenAI text-embedding-3-small
 - [x] **INDX-11**: Embeddings (.npy) and chunks (.json) saved to Modal Volume namespaced by user_id/session_id
@@ -121,14 +121,14 @@
 | AUTH-02 | Phase 1 | Pending |
 | AUTH-03 | Phase 1 | Pending |
 | AUTH-04 | Phase 1 | Complete |
-| INDX-01 | Phase 2 | Pending |
-| INDX-02 | Phase 2 | Pending |
-| INDX-03 | Phase 2 | Pending |
-| INDX-04 | Phase 2 | Pending |
-| INDX-05 | Phase 2 | Pending |
-| INDX-06 | Phase 2 | Pending |
-| INDX-07 | Phase 2 | Pending |
-| INDX-08 | Phase 2 | Pending |
+| INDX-01 | Phase 2 | Complete |
+| INDX-02 | Phase 2 | Complete |
+| INDX-03 | Phase 2 | Complete |
+| INDX-04 | Phase 2 | Complete |
+| INDX-05 | Phase 2 | Complete |
+| INDX-06 | Phase 2 | Complete |
+| INDX-07 | Phase 2 | Complete |
+| INDX-08 | Phase 2 | Complete |
 | INDX-09 | Phase 2 | Pending |
 | INDX-10 | Phase 2 | Complete |
 | INDX-11 | Phase 2 | Complete |
