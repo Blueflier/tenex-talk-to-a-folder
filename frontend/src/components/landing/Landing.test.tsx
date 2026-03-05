@@ -17,7 +17,8 @@ describe("LandingPage", () => {
 
   it('renders privacy messaging containing "Google Drive"', () => {
     render(<LandingPage onSignIn={vi.fn()} />);
-    expect(screen.getByText(/google drive/i)).toBeDefined();
+    const matches = screen.getAllByText(/google drive/i);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders error message when authError prop is set", () => {
