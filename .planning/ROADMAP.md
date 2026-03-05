@@ -86,8 +86,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [x] 04-01-PLAN.md -- Backend staleness detection, grep_live, hybrid /chat routing
+- [x] 04-02-PLAN.md -- Frontend staleness banners, SSE parsing, IndexedDB persistence
+- [x] 04-03-PLAN.md -- Per-file re-indexing endpoint + ReindexButton
 
 ### Phase 5: Multi-session + Polish
 **Goal**: User can manage multiple chat sessions with full error handling and production-quality UX
@@ -130,6 +131,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation + Auth | 0/3 | Planning | - |
 | 2. Indexing Pipeline | 2/4 | In Progress|  |
 | 3. Retrieval + Chat | 3/3 | Complete | 2026-03-05 |
-| 4. Staleness + Hybrid Retrieval | 2/3 | In Progress|  |
+| 4. Staleness + Hybrid Retrieval | 3/3 | Complete | 2026-03-05 |
 | 5. Multi-session + Polish | 0/? | Not started | - |
 | 6. Eval Harness | 0/? | Not started | - |

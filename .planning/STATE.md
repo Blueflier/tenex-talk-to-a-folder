@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-05T23:04:14.861Z"
-last_activity: 2026-03-05 -- Completed 04-01 backend staleness + hybrid retrieval
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-03-05T23:11:00.000Z"
+last_activity: 2026-03-05 -- Completed 04-03 per-file re-indexing + ReindexButton
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 13
-  completed_plans: 9
-  percent: 69
+  completed_plans: 11
+  percent: 85
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2025-03-05)
 
 ## Current Position
 
-Phase: 4 of 6 (Staleness + Hybrid Retrieval)
-Plan: 2 of 3 in current phase
+Phase: 4 of 6 (Staleness + Hybrid Retrieval) -- COMPLETE
+Plan: 3 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-05 -- Completed 04-01 backend staleness + hybrid retrieval
+Last activity: 2026-03-05 -- Completed 04-03 per-file re-indexing + ReindexButton
 
-Progress: [███████░░░] 69%
+Progress: [████████░░] 85%
 
 ## Performance Metrics
 
@@ -54,6 +54,8 @@ Progress: [███████░░░] 69%
 *Updated after each plan completion*
 | Phase 02-indexing-pipeline P01 | 3min | 2 tasks | 5 files |
 | Phase 04-staleness-hybrid-retrieval P01 | 4min | 2 tasks | 6 files |
+| Phase 04-staleness-hybrid-retrieval P02 | 3min | 1 task | 8 files |
+| Phase 04-staleness-hybrid-retrieval P03 | 5min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -85,7 +87,9 @@ Recent decisions affecting current work:
 - [Phase 04-01]: Staleness SSE event emitted before tokens for immediate frontend banner
 - [Phase 04-01]: extract_keywords uses LLM with stopword fallback on parse failure
 - [Phase 04-01]: grep_live context windows include 1 sentence before and after match
-- [Phase 04-01]: Three-way partition: deleted files (404) stay on cosine path per CONTEXT.md
+- [Phase 04-03]: base_path parameter on reindex_file for testability (same as storage.py)
+- [Phase 04-03]: useReindex tracks per-file state with Set<string> for independent re-indexing
+- [Phase 04-03]: disabledTooltip prop on ChatInput for contextual send-button tooltip
 
 ### Pending Todos
 
@@ -97,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T23:04:10.014Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-03-05T23:11:00.000Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None

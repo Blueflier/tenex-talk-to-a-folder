@@ -37,7 +37,7 @@
 - [x] **RETR-04**: Fresh files use pre-computed embeddings; stale files routed to grep_live
 - [x] **RETR-05**: LLM generates 8-12 keyword variants for grep_live queries
 - [x] **RETR-06**: grep_live fetches stale file content, searches with regex alternation, returns up to 15 matches with context windows
-- [ ] **RETR-07**: Per-file re-indexing: user clicks "Re-index this file", only that file's chunks replaced in session
+- [x] **RETR-07**: Per-file re-indexing: user clicks "Re-index this file", only that file's chunks replaced in session
 
 ### Chat
 
@@ -141,7 +141,7 @@
 | RETR-04 | Phase 4 | Complete |
 | RETR-05 | Phase 4 | Complete |
 | RETR-06 | Phase 4 | Complete |
-| RETR-07 | Phase 4 | Pending |
+| RETR-07 | Phase 4 | Complete |
 | CHAT-01 | Phase 3 | Complete |
 | CHAT-02 | Phase 3 | Complete |
 | CHAT-03 | Phase 3 | Complete |
