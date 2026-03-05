@@ -1,7 +1,15 @@
 import "fake-indexeddb/auto";
 import { describe, it, expect, beforeEach } from "vitest";
-import { openDB, saveChat, getChats, saveMessage, getMessages } from "./db";
+import {
+  openDB,
+  saveChat,
+  getChats,
+  saveMessage,
+  getMessages,
+  loadMessages,
+} from "./db";
 import type { Chat, Message } from "./db";
+import type { Citation } from "./citations";
 
 describe("IndexedDB persistence layer", () => {
   beforeEach(() => {
@@ -99,6 +107,96 @@ describe("IndexedDB persistence layer", () => {
       const messagesB = await getMessages("session-b");
       expect(messagesB).toHaveLength(1);
       expect(messagesB[0].content).toBe("World");
+    });
+
+    it("saveMessage stores citations array as frozen snapshot", async () => {
+      const citations: Citation[] = [
+        {
+          index: 1,
+          file_name: "report.pdf",
+          file_id: "f1",
+          page_number: 7,
+          chunk_text: "Relevant passage from page 7",
+        },
+        {
+          index: 2,
+          file_name: "data.csv",
+          file_id: "f2",
+          row_number: 12,
+          chunk_text: "Row 12 data",
+        },
+      ];
+
+      const msg: Message = {
+        session_id: "cite-session",
+        role: "assistant",
+        content: "Here is the answer [1][2]",
+        citations,
+        created_at: new Date().toISOString(),
+      };
+
+      await saveMessage(msg);
+      const loaded = await getMessages("cite-session");
+
+      expect(loaded).toHaveLength(1);
+      expect(loaded[0].citations).toHaveLength(2);
+      expect(loaded[0].citations![0].file_name).toBe("report.pdf");
+      expect(loaded[0].citations![0].page_number).toBe(7);
+      expect(loaded[0].citations![1].row_number).toBe(12);
+    });
+
+    it("loadMessages returns messages sorted by created_at ascending", async () => {
+      const msgs: Message[] = [
+        {
+          session_id: "sorted-session",
+          role: "user",
+          content: "Third",
+          citations: [],
+          created_at: "2024-06-03T00:00:00Z",
+        },
+        {
+          session_id: "sorted-session",
+          role: "assistant",
+          content: "First",
+          citations: [],
+          created_at: "2024-06-01T00:00:00Z",
+        },
+        {
+          session_id: "sorted-session",
+          role: "user",
+          content: "Second",
+          citations: [],
+          created_at: "2024-06-02T00:00:00Z",
+        },
+      ];
+
+      for (const m of msgs) await saveMessage(m);
+
+      const loaded = await loadMessages("sorted-session");
+      expect(loaded).toHaveLength(3);
+      expect(loaded[0].content).toBe("First");
+      expect(loaded[1].content).toBe("Second");
+      expect(loaded[2].content).toBe("Third");
+    });
+
+    it("loadMessages works without any auth token in sessionStorage (PERS-04)", async () => {
+      // Ensure no token exists
+      sessionStorage.removeItem("google_access_token");
+
+      const msg: Message = {
+        session_id: "no-auth-session",
+        role: "assistant",
+        content: "Previous answer",
+        citations: [],
+        created_at: new Date().toISOString(),
+      };
+
+      await saveMessage(msg);
+
+      // Should not throw — no auth check required
+      const loaded = await loadMessages("no-auth-session");
+      expect(loaded).toHaveLength(1);
+      expect(loaded[0].content).toBe("Previous answer");
     });
 
     it("getChats returns chats sorted by last_message_at descending", async () => {
