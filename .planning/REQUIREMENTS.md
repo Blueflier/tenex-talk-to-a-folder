@@ -70,9 +70,9 @@
 
 ### Local Persistence
 
-- [ ] **PERS-01**: IndexedDB "chats" store: session_id, title, created_at, last_message_at, indexed_sources[]
-- [ ] **PERS-02**: IndexedDB "messages" store: session_id (indexed), role, content, citations[], created_at
-- [ ] **PERS-03**: Chat history and messages load from IndexedDB with no server calls
+- [x] **PERS-01**: IndexedDB "chats" store: session_id, title, created_at, last_message_at, indexed_sources[]
+- [x] **PERS-02**: IndexedDB "messages" store: session_id (indexed), role, content, citations[], created_at
+- [x] **PERS-03**: Chat history and messages load from IndexedDB with no server calls
 - [ ] **PERS-04**: Old chats readable without auth; new messages require valid token
 
 ### Eval Harness
@@ -162,9 +162,9 @@
 | INFR-02 | Phase 1 | Complete |
 | INFR-03 | Phase 5 | Pending |
 | INFR-04 | Phase 1 | Complete |
-| PERS-01 | Phase 1 | Pending |
-| PERS-02 | Phase 1 | Pending |
-| PERS-03 | Phase 1 | Pending |
+| PERS-01 | Phase 1 | Complete |
+| PERS-02 | Phase 1 | Complete |
+| PERS-03 | Phase 1 | Complete |
 | PERS-04 | Phase 3 | Pending |
 | EVAL-01 | Phase 6 | Pending |
 | EVAL-02 | Phase 6 | Pending |
