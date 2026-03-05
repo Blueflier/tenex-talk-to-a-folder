@@ -31,11 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. API calls from frontend include Authorization header; expired tokens trigger a re-auth banner
   4. IndexedDB "chats" and "messages" stores exist and persist data across page reloads
   5. Model strategy is configured with DeepSeek default and swappable model key
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md — Backend scaffold: Modal + FastAPI, CORS, auth verification, model config
+- [ ] 01-02-PLAN.md — Frontend scaffold: Vite + React + shadcn/ui, IndexedDB persistence layer
+- [ ] 01-03-PLAN.md — Google OAuth flow, landing page, auth-aware API client, app shell
 
 ### Phase 2: Indexing Pipeline
 **Goal**: User can paste a Drive link and watch their files get extracted, chunked, and embedded with progress feedback
@@ -123,7 +124,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Auth | 0/? | Not started | - |
+| 1. Foundation + Auth | 0/3 | Planning | - |
 | 2. Indexing Pipeline | 0/? | Not started | - |
 | 3. Retrieval + Chat | 0/? | Not started | - |
 | 4. Staleness + Hybrid Retrieval | 0/? | Not started | - |
