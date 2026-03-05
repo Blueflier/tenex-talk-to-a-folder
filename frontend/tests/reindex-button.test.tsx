@@ -1,23 +1,24 @@
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ReindexButton } from "@/components/chat/ReindexButton";
 
 describe("ReindexButton", () => {
-  it("renders 'Re-index this file' in default state", () => {
+  it("renders 'Re-index this file' in default state, enabled", () => {
     render(
       <ReindexButton fileId="f1" isReindexing={false} onReindex={() => {}} />
     );
     const btn = screen.getByRole("button", { name: /re-index this file/i });
     expect(btn).toBeDefined();
-    expect(btn).not.toBeDisabled();
+    expect((btn as HTMLButtonElement).disabled).toBe(false);
   });
 
-  it("renders spinner + 'Re-indexing...' when isReindexing=true", () => {
+  it("renders spinner + 'Re-indexing...' when isReindexing=true, disabled", () => {
     render(
       <ReindexButton fileId="f1" isReindexing={true} onReindex={() => {}} />
     );
     const btn = screen.getByRole("button");
-    expect(btn).toBeDisabled();
+    expect((btn as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText(/re-indexing\.\.\./i)).toBeDefined();
     // Spinner should be present (Loader2 renders as svg)
     expect(btn.querySelector("svg")).toBeTruthy();

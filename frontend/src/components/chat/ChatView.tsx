@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import type { Citation } from "@/lib/citations";
 import type { StalenessInfo } from "./StalenessBanner";
 import type { IndexedSource } from "@/lib/suggestions";
 import { saveMessage, loadMessages } from "@/lib/db";
 import { useStream } from "@/hooks/useStream";
+import { useReindex } from "@/hooks/useReindex";
 import { MessageList, type MessageData } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { CitationPopover } from "./CitationPopover";
 import { EmptyState } from "./EmptyState";
+import { ReindexButton } from "./ReindexButton";
 
 const NO_RESULTS_TEXT =
   "I couldn't find relevant information in the provided files. Try rephrasing your question or check if the right files were indexed.";
@@ -54,6 +57,17 @@ export function ChatView({
       }
     });
   }, [sessionId]);
+
+  // Re-index hook
+  const { reindex, isReindexing, isFileReindexing } = useReindex({
+    onSuccess(fileId, indexedAt) {
+      toast.success("Re-indexed successfully", { duration: 3000 });
+      // TODO: update IndexedDB indexed_sources entry with new indexed_at if needed
+    },
+    onError(error) {
+      toast.error(`Re-index failed: ${error}`, { duration: 5000 });
+    },
+  });
 
   const { sendMessage, isStreaming, abort } = useStream({
     onToken(content) {
@@ -200,6 +214,18 @@ export function ChatView({
     [sessionId, fileList, sendMessage]
   );
 
+  const handleReindex = useCallback(
+    (fileId: string) => {
+      const token = sessionStorage.getItem("google_access_token");
+      if (!token) {
+        setNeedsAuth(true);
+        return;
+      }
+      reindex(sessionId, fileId, token);
+    },
+    [sessionId, reindex]
+  );
+
   const handleCitationClick = useCallback(
     (index: number, anchorEl: HTMLElement) => {
       // Find citation from the latest assistant message
@@ -214,7 +240,25 @@ export function ChatView({
     [messages]
   );
 
+  const renderReindexButton = useCallback(
+    (info: StalenessInfo) => {
+      // No reindex button for deleted files
+      if (info.error === "not_found") return null;
+      return (
+        <ReindexButton
+          fileId={info.file_id}
+          isReindexing={isFileReindexing(info.file_id)}
+          onReindex={() => handleReindex(info.file_id)}
+        />
+      );
+    },
+    [isFileReindexing, handleReindex]
+  );
+
   const showEmptyState = messages.length === 0 && indexedSources.length > 0;
+
+  // Send button disabled during streaming OR reindexing
+  const isSendDisabled = isStreaming || isReindexing;
 
   return (
     <div className="flex flex-col h-full">
@@ -233,13 +277,15 @@ export function ChatView({
           messages={messages}
           sessionId={sessionId}
           onCitationClick={handleCitationClick}
+          renderReindexButton={renderReindexButton}
         />
       )}
       <ChatInput
-        isStreaming={isStreaming}
+        isStreaming={isSendDisabled}
         onSend={handleSend}
         onStop={abort}
         prefill={prefill}
+        disabledTooltip={isReindexing ? "Re-indexing in progress" : undefined}
       />
       <CitationPopover
         citation={activeCitation?.citation ?? null}

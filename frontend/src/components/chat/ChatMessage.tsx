@@ -17,6 +17,7 @@ interface ChatMessageProps {
   onCitationClick: (index: number, anchorEl: HTMLElement) => void;
   staleFiles?: StalenessInfo[];
   sessionId?: string;
+  renderReindexButton?: (info: StalenessInfo) => React.ReactNode;
 }
 
 function renderContentWithCitations(
@@ -48,6 +49,7 @@ export function ChatMessage({
   onCitationClick,
   staleFiles,
   sessionId,
+  renderReindexButton,
 }: ChatMessageProps) {
   const isUser = role === "user";
 
@@ -61,7 +63,7 @@ export function ChatMessage({
         }`}
       >
         {!isUser && staleFiles && staleFiles.length > 0 && sessionId && (
-          <StalenessBannerList staleFiles={staleFiles} sessionId={sessionId} />
+          <StalenessBannerList staleFiles={staleFiles} sessionId={sessionId} renderReindexButton={renderReindexButton} />
         )}
         {isNoResults ? (
           <NoResultsMessage />

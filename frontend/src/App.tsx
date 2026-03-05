@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Toaster } from "sonner";
 import { initAuth, requestToken } from "@/lib/auth";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { AppShell } from "@/components/app-shell/AppShell";
@@ -98,6 +99,7 @@ function App() {
     <>
       <AppShell />
       <ReAuthModal open={showReAuth} onReAuth={handleReAuth} />
+      <Toaster position="top-center" richColors />
     </>
   );
 }

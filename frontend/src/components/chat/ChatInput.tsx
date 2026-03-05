@@ -9,9 +9,11 @@ interface ChatInputProps {
   onStop: () => void;
   /** When set, overrides the input value (for suggestion auto-fill). */
   prefill?: string;
+  /** Tooltip shown on disabled send button (e.g. during re-indexing). */
+  disabledTooltip?: string;
 }
 
-export function ChatInput({ isStreaming, onSend, onStop, prefill }: ChatInputProps) {
+export function ChatInput({ isStreaming, onSend, onStop, prefill, disabledTooltip }: ChatInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -72,7 +74,8 @@ export function ChatInput({ isStreaming, onSend, onStop, prefill }: ChatInputPro
             <button
               type="button"
               onClick={handleSend}
-              disabled={!value.trim()}
+              disabled={!value.trim() || isStreaming}
+              title={isStreaming && disabledTooltip ? disabledTooltip : undefined}
               className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-800 hover:opacity-80 transition-opacity disabled:opacity-40"
               aria-label="Send message"
             >

@@ -16,9 +16,10 @@ interface MessageListProps {
   messages: MessageData[];
   sessionId: string;
   onCitationClick: (index: number, anchorEl: HTMLElement) => void;
+  renderReindexButton?: (info: StalenessInfo) => React.ReactNode;
 }
 
-export function MessageList({ messages, sessionId, onCitationClick }: MessageListProps) {
+export function MessageList({ messages, sessionId, onCitationClick, renderReindexButton }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export function MessageList({ messages, sessionId, onCitationClick }: MessageLis
           onCitationClick={onCitationClick}
           staleFiles={msg.staleFiles}
           sessionId={sessionId}
+          renderReindexButton={renderReindexButton}
         />
       ))}
       <div ref={bottomRef} />
