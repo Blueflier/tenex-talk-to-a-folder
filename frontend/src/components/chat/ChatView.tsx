@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Citation } from "@/lib/citations";
+import type { IndexedSource } from "@/lib/suggestions";
 import { saveMessage, loadMessages } from "@/lib/db";
 import { useStream } from "@/hooks/useStream";
 import { MessageList, type MessageData } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { CitationPopover } from "./CitationPopover";
+import { EmptyState } from "./EmptyState";
 
 const NO_RESULTS_TEXT =
   "I couldn't find relevant information in the provided files. Try rephrasing your question or check if the right files were indexed.";
@@ -12,14 +14,17 @@ const NO_RESULTS_TEXT =
 interface ChatViewProps {
   sessionId: string;
   fileList: string[];
+  indexedSources?: IndexedSource[];
   initialMessages?: MessageData[];
 }
 
 export function ChatView({
   sessionId,
   fileList,
+  indexedSources = [],
   initialMessages = [],
 }: ChatViewProps) {
+  const [prefill, setPrefill] = useState("");
   const [messages, setMessages] = useState<MessageData[]>(initialMessages);
   const [needsAuth, setNeedsAuth] = useState(false);
   const [activeCitation, setActiveCitation] = useState<{
@@ -192,6 +197,8 @@ export function ChatView({
     [messages]
   );
 
+  const showEmptyState = messages.length === 0 && indexedSources.length > 0;
+
   return (
     <div className="flex flex-col h-full">
       {needsAuth && (
@@ -199,14 +206,22 @@ export function ChatView({
           Your session has expired. Please sign in again to send messages.
         </div>
       )}
-      <MessageList
-        messages={messages}
-        onCitationClick={handleCitationClick}
-      />
+      {showEmptyState ? (
+        <EmptyState
+          indexedSources={indexedSources}
+          onSuggestionClick={(query) => setPrefill(query)}
+        />
+      ) : (
+        <MessageList
+          messages={messages}
+          onCitationClick={handleCitationClick}
+        />
+      )}
       <ChatInput
         isStreaming={isStreaming}
         onSend={handleSend}
         onStop={abort}
+        prefill={prefill}
       />
       <CitationPopover
         citation={activeCitation?.citation ?? null}

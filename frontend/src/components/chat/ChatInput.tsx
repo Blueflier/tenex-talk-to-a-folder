@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useAutoResize } from "@/hooks/useAutoResize";
@@ -7,11 +7,21 @@ interface ChatInputProps {
   isStreaming: boolean;
   onSend: (message: string) => void;
   onStop: () => void;
+  /** When set, overrides the input value (for suggestion auto-fill). */
+  prefill?: string;
 }
 
-export function ChatInput({ isStreaming, onSend, onStop }: ChatInputProps) {
+export function ChatInput({ isStreaming, onSend, onStop, prefill }: ChatInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync prefill into value when it changes
+  useEffect(() => {
+    if (prefill !== undefined && prefill !== "") {
+      setValue(prefill);
+      textareaRef.current?.focus();
+    }
+  }, [prefill]);
   const resize = useAutoResize(textareaRef);
 
   const handleSend = () => {
