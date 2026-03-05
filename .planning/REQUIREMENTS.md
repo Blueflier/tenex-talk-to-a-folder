@@ -42,7 +42,7 @@
 ### Chat
 
 - [x] **CHAT-01**: SSE streaming response via fetch + ReadableStream (POST /chat)
-- [ ] **CHAT-02**: Inline [N] citations in LLM responses pointing to source file, page, and passage
+- [x] **CHAT-02**: Inline [N] citations in LLM responses pointing to source file, page, and passage
 - [ ] **CHAT-03**: Citation metadata frozen on message at answer time (survives file changes)
 - [x] **CHAT-04**: System prompt constrains LLM to answer only from provided sources
 - [ ] **CHAT-05**: Staleness warning events streamed before answer tokens, yellow banner per stale file
@@ -56,7 +56,7 @@
 - [ ] **UI-04**: Chat title defaults to first indexed source name, user can click to rename
 - [ ] **UI-05**: Chat input bar with Drive link paste zone
 - [ ] **UI-06**: Indexing progress: two-phase progress bars (extraction, embedding)
-- [ ] **UI-07**: Citation rendering: PDF as "file.pdf, p.7", Sheet as "file.csv, row 12", Slides as "deck, slide 3"
+- [x] **UI-07**: Citation rendering: PDF as "file.pdf, p.7", Sheet as "file.csv, row 12", Slides as "deck, slide 3"
 - [ ] **UI-08**: Error banners for all failure modes (403, 404, empty folder, scanned PDF, connection lost, etc.)
 - [ ] **UI-09**: Rate limit feedback: 429 response shown to user
 - [ ] **UI-10**: Duplicate upload notice with "Open that chat" / "Re-index here" options
@@ -143,7 +143,7 @@
 | RETR-06 | Phase 4 | Pending |
 | RETR-07 | Phase 4 | Pending |
 | CHAT-01 | Phase 3 | Complete |
-| CHAT-02 | Phase 3 | Pending |
+| CHAT-02 | Phase 3 | Complete |
 | CHAT-03 | Phase 3 | Pending |
 | CHAT-04 | Phase 3 | Complete |
 | CHAT-05 | Phase 4 | Pending |
@@ -154,7 +154,7 @@
 | UI-04 | Phase 5 | Pending |
 | UI-05 | Phase 2 | Pending |
 | UI-06 | Phase 2 | Pending |
-| UI-07 | Phase 3 | Pending |
+| UI-07 | Phase 3 | Complete |
 | UI-08 | Phase 5 | Pending |
 | UI-09 | Phase 5 | Pending |
 | UI-10 | Phase 5 | Pending |

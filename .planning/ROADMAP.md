@@ -70,7 +70,7 @@ Plans:
 
 Plans:
 - [ ] 03-01-PLAN.md — Backend retrieval engine + /chat SSE streaming endpoint
-- [ ] 03-02-PLAN.md — Frontend chat UI components, useStream hook, citation rendering
+- [x] 03-02-PLAN.md — Frontend chat UI components, useStream hook, citation rendering
 - [ ] 03-03-PLAN.md — Citation persistence to IndexedDB, auth guard, empty state suggestions
 
 ### Phase 4: Staleness + Hybrid Retrieval
