@@ -1,6 +1,7 @@
 modal
-fastapi
+fastapi>=0.135.0
 aiohttp
+pymupdf
 openai
 numpy
 pytest
