@@ -83,7 +83,7 @@ Plans:
   3. LLM generates keyword variants for grep_live; grep returns up to 15 matches with context windows
   4. User sees a yellow staleness warning banner per stale file before answer tokens stream
   5. User can click "Re-index this file" to replace only that file's chunks in the session
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [x] 04-01-PLAN.md -- Backend staleness detection, grep_live, hybrid /chat routing
@@ -100,11 +100,12 @@ Plans:
   3. Pasting additional Drive links into an existing session appends embeddings to the session
   4. All failure modes (403, 404, empty folder, scanned PDF, connection lost, rate limit) show descriptive error banners
   5. /chat endpoint enforces 10 req/min per session rate limit; 429 response shown to user
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Backend rate limiting on /chat + multi-link append in storage
+- [ ] 05-02-PLAN.md — Sidebar session management, new chat, rename, delete
+- [ ] 05-03-PLAN.md — Duplicate detection, error toasts, rate limit feedback
 
 ### Phase 6: Eval Harness
 **Goal**: Quality claims are measurable with an automated eval pipeline on real academic papers
@@ -132,5 +133,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Indexing Pipeline | 4/4 | Complete   | 2026-03-05 |
 | 3. Retrieval + Chat | 3/3 | Complete | 2026-03-05 |
 | 4. Staleness + Hybrid Retrieval | 3/3 | Complete | 2026-03-05 |
-| 5. Multi-session + Polish | 0/? | Not started | - |
+| 5. Multi-session + Polish | 0/3 | Not started | - |
 | 6. Eval Harness | 0/? | Not started | - |
