@@ -27,7 +27,7 @@
 - [x] **INDX-11**: Embeddings (.npy) and chunks (.json) saved to Modal Volume namespaced by user_id/session_id
 - [x] **INDX-12**: volume.commit() called after every write to prevent data loss
 - [ ] **INDX-13**: Duplicate upload detection by Drive file ID against IndexedDB before indexing
-- [ ] **INDX-14**: Multi-link sessions: pasting additional links appends to existing session embeddings
+- [x] **INDX-14**: Multi-link sessions: pasting additional links appends to existing session embeddings
 
 ### Retrieval
 
@@ -65,7 +65,7 @@
 
 - [x] **INFR-01**: Modal app with FastAPI, Volume mount at /data, OpenAI + DeepSeek secrets
 - [x] **INFR-02**: CORS configured with explicit origins (localhost:5173 + production domain)
-- [ ] **INFR-03**: Rate limiting on /chat: 10 requests/minute per session (in-memory)
+- [x] **INFR-03**: Rate limiting on /chat: 10 requests/minute per session (in-memory)
 - [x] **INFR-04**: Model strategy: DeepSeek default, configurable model key, OpenAI-compatible client swap
 
 ### Local Persistence
@@ -134,7 +134,7 @@
 | INDX-11 | Phase 2 | Complete |
 | INDX-12 | Phase 2 | Complete |
 | INDX-13 | Phase 5 | Pending |
-| INDX-14 | Phase 5 | Pending |
+| INDX-14 | Phase 5 | Complete |
 | RETR-01 | Phase 3 | Complete |
 | RETR-02 | Phase 3 | Complete |
 | RETR-03 | Phase 4 | Complete |
@@ -160,7 +160,7 @@
 | UI-10 | Phase 5 | Pending |
 | INFR-01 | Phase 1 | Complete |
 | INFR-02 | Phase 1 | Complete |
-| INFR-03 | Phase 5 | Pending |
+| INFR-03 | Phase 5 | Complete |
 | INFR-04 | Phase 1 | Complete |
 | PERS-01 | Phase 1 | Complete |
 | PERS-02 | Phase 1 | Complete |
