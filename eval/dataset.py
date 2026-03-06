@@ -22,7 +22,9 @@ def load_qasper_papers(n: int = 5, seed: int = 42) -> list[dict]:
     Returns:
         List of QASPER paper dicts.
     """
-    ds = load_dataset("allenai/qasper", split="test")
+    ds = load_dataset(
+        "allenai/qasper", split="test", revision="refs/convert/parquet"
+    )
 
     candidates = []
     for paper in ds:

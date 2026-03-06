@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-03-06T01:43:06.067311+00:00",
+  "config": {
+    "n_papers": 5,
+    "seed": 42
+  },
+  "overall_f1": 0.0,
+  "per_paper": [
+    {
+      "paper_id": "1809.08935",
+      "title": "Lexical Bias In Essay Level Prediction",
+      "n_questions": 5,
+      "f1": 0.0,
+      "diagnostics": {
+        "CORRECT": 0,
+        "CRAWL_MISS": 0,
+        "RETRIEVAL_MISS": 0,
+        "SYNTHESIS_FAIL": 0
+      }
+    },
+    {
+      "paper_id": "1905.08392",
+      "title": "A Causality-Guided Prediction of the TED Talk Ratings from the Speech-Transcripts using Neural Networks",
+      "n_questions": 7,
+      "f1": 0.0,
+      "diagnostics": {
+        "CORRECT": 0,
+        "CRAWL_MISS": 0,
+        "RETRIEVAL_MISS": 0,
+        "SYNTHESIS_FAIL": 0
+      }
+    },
+    {
+      "paper_id": "1710.11027",
+      "title": "Named Entity Recognition in Twitter using Images and Text",
+      "n_questions": 5,
+      "f1": 0.0,
+      "diagnostics": {
+        "CORRECT": 0,
+        "CRAWL_MISS": 0,
+        "RETRIEVAL_MISS": 0,
+        "SYNTHESIS_FAIL": 0
+      }
+    },
+    {
+      "paper_id": "1605.05156",
+      "title": "Tweet Acts: A Speech Act Classifier for Twitter",
+      "n_questions": 9,
+      "f1": 0.0,
+      "diagnostics": {
+        "CORRECT": 0,
+        "CRAWL_MISS": 0,
+        "RETRIEVAL_MISS": 0,
+        "SYNTHESIS_FAIL": 0
+      }
+    },
+    {
+      "paper_id": "1909.13184",
+      "title": "Towards Automatic Bot Detection in Twitter for Health-related Tasks",
+      "n_questions": 4,
+      "f1": 0.0,
+      "diagnostics": {
+        "CORRECT": 0,
+        "CRAWL_MISS": 0,
+        "RETRIEVAL_MISS": 0,
+        "SYNTHESIS_FAIL": 0
+      }
+    }
+  ],
+  "diagnostics_total": {
+    "CORRECT": 0,
+    "CRAWL_MISS": 0,
+    "RETRIEVAL_MISS": 0,
+    "SYNTHESIS_FAIL": 0
+  }
+}
