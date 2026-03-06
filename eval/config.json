@@ -1,0 +1,10 @@
+{
+  "base_url": "http://localhost:8000",
+  "n_papers": 5,
+  "seed": 42,
+  "similarity_threshold": 0.7,
+  "drive_delta": {
+    "drive_folder_link": "",
+    "f1_delta_threshold": 0.10
+  }
+}
