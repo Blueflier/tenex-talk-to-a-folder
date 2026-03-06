@@ -139,3 +139,92 @@ export async function loadMessages(sessionId: string): Promise<Message[]> {
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 }
+
+export async function getChat(sessionId: string): Promise<Chat | undefined> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("chats", "readonly");
+    const request = tx.objectStore("chats").get(sessionId);
+
+    request.onsuccess = () => {
+      db.close();
+      resolve(request.result as Chat | undefined);
+    };
+
+    request.onerror = () => {
+      db.close();
+      reject(request.error);
+    };
+  });
+}
+
+export async function updateChatTitle(
+  sessionId: string,
+  title: string
+): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("chats", "readwrite");
+    const store = tx.objectStore("chats");
+    const getReq = store.get(sessionId);
+
+    getReq.onsuccess = () => {
+      const chat = getReq.result as Chat | undefined;
+      if (chat) {
+        chat.title = title;
+        store.put(chat);
+      }
+    };
+
+    tx.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
+  });
+}
+
+export async function deleteChat(sessionId: string): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("chats", "readwrite");
+    tx.objectStore("chats").delete(sessionId);
+    tx.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
+  });
+}
+
+export async function deleteMessages(sessionId: string): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("messages", "readwrite");
+    const index = tx.objectStore("messages").index("session_id");
+    const request = index.openCursor(IDBKeyRange.only(sessionId));
+
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (cursor) {
+        cursor.delete();
+        cursor.continue();
+      }
+    };
+
+    tx.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
+  });
+}
