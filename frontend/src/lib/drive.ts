@@ -1,5 +1,5 @@
 const DRIVE_URL_REGEX =
-  /drive\.google\.com\/(drive\/folders\/|file\/d\/|open\?id=)([-\w]+)/;
+  /(?:drive\.google\.com\/(?:drive\/folders\/|file\/d\/|open\?id=)|docs\.google\.com\/document\/d\/|sheets\.google\.com\/spreadsheets\/d\/|slides\.google\.com\/presentation\/d\/)([-\w]+)/;
 
 export function isValidDriveUrl(url: string): boolean {
   return DRIVE_URL_REGEX.test(url);

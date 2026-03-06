@@ -21,6 +21,7 @@ import { resolveDriveFileIds } from "@/lib/drive";
 interface IndexedFile {
   file_id: string;
   file_name: string;
+  indexed_at: string;
 }
 
 interface AppShellProps {
@@ -66,6 +67,14 @@ export function AppShell({ token }: AppShellProps) {
         if (loaded.length > 0) {
           setSelectedSessionId(loaded[0].session_id);
         }
+        // Hydrate indexedFilesMap from persisted indexed_files
+        const filesMap = new Map<string, IndexedFile[]>();
+        for (const chat of loaded) {
+          if (chat.indexed_files && chat.indexed_files.length > 0) {
+            filesMap.set(chat.session_id, chat.indexed_files);
+          }
+        }
+        setIndexedFilesMap(filesMap);
       } catch {
         // IndexedDB may not be available, continue with empty state
       } finally {
@@ -228,17 +237,22 @@ export function AppShell({ token }: AppShellProps) {
 
       if (!selectedSessionId) return;
 
-      // Update maps
+      // Update maps with dedup
+      let mergedFiles: IndexedFile[] = [];
       setIndexedFilesMap((prev) => {
         const next = new Map(prev);
         const existing = next.get(selectedSessionId) || [];
-        next.set(selectedSessionId, [...existing, ...result.indexedSources]);
+        const existingIds = new Set(existing.map((f) => f.file_id));
+        const newFiles = result.indexedSources.filter(
+          (f) => !existingIds.has(f.file_id)
+        );
+        mergedFiles = [...existing, ...newFiles];
+        next.set(selectedSessionId, mergedFiles);
         return next;
       });
       setTotalChunksMap((prev) => {
         const next = new Map(prev);
-        const existing = next.get(selectedSessionId) || 0;
-        next.set(selectedSessionId, existing + result.totalChunks);
+        next.set(selectedSessionId, result.totalChunks);
         return next;
       });
 
@@ -246,19 +260,26 @@ export function AppShell({ token }: AppShellProps) {
       const firstName =
         result.indexedSources[0]?.file_name || "Untitled";
       updateChatTitle(selectedSessionId, firstName);
+
+      // Deduplicate indexed_sources IDs
+      const newSourceIds = result.indexedSources.map((f) => f.file_id);
       setChats((prev) =>
-        prev.map((c) =>
-          c.session_id === selectedSessionId
-            ? {
-                ...c,
-                title: firstName,
-                indexed_sources: [
-                  ...c.indexed_sources,
-                  ...result.indexedSources.map((f) => f.file_id),
-                ],
-              }
-            : c
-        )
+        prev.map((c) => {
+          if (c.session_id !== selectedSessionId) return c;
+          const existingSourceIds = new Set(c.indexed_sources);
+          const dedupedNewIds = newSourceIds.filter(
+            (id) => !existingSourceIds.has(id)
+          );
+          const updatedChat = {
+            ...c,
+            title: firstName,
+            indexed_sources: [...c.indexed_sources, ...dedupedNewIds],
+            indexed_files: mergedFiles,
+          };
+          // Persist updated chat with indexed_files to IndexedDB
+          saveChat(updatedChat);
+          return updatedChat;
+        })
       );
     },
     [selectedSessionId]
@@ -296,7 +317,7 @@ export function AppShell({ token }: AppShellProps) {
     : 0;
   const isIndexed = indexedFiles.length > 0;
   const fileNames = indexedFiles.map((f) => f.file_name);
-  const fileList = indexedFiles.map((f) => f.file_id);
+  const fileList = indexedFiles.map((f) => ({ file_id: f.file_id, file_name: f.file_name, indexed_at: f.indexed_at }));
 
   if (loading) {
     return (
@@ -389,7 +410,7 @@ export function AppShell({ token }: AppShellProps) {
               onStop={() => {}}
               onDriveLink={handleDriveLink}
               disabled={indexingOpen}
-              placeholder="Paste a Google Drive folder link..."
+              placeholder="Paste a Google Drive link..."
             />
           </>
         )}

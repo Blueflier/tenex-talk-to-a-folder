@@ -8,6 +8,10 @@ DRIVE_FOLDER_PATTERN = re.compile(r"/folders/([-\w]+)")
 DRIVE_FILE_PATTERN = re.compile(r"/d/([-\w]+)")
 DRIVE_OPEN_PATTERN = re.compile(r"[?&]id=([-\w]+)")
 DRIVE_URL_PATTERN = re.compile(r"[-\w]{25,}")
+# Google Docs/Sheets/Slides URL patterns: {service}.google.com/{type}/d/{id}
+DOCS_PATTERN = re.compile(r"docs\.google\.com/document/d/([-\w]+)")
+SHEETS_PATTERN = re.compile(r"sheets\.google\.com/spreadsheets/d/([-\w]+)")
+SLIDES_PATTERN = re.compile(r"slides\.google\.com/presentation/d/([-\w]+)")
 
 SUPPORTED_MIME_TYPES = {
     "application/vnd.google-apps.document",
@@ -35,8 +39,17 @@ DRIVE_API_BASE = "https://www.googleapis.com/drive/v3/files"
 
 
 def extract_drive_id(url: str) -> Optional[str]:
-    """Extract file or folder ID from a Google Drive URL."""
+    """Extract file or folder ID from a Google Drive, Docs, Sheets, or Slides URL."""
     m = DRIVE_FOLDER_PATTERN.search(url)
+    if m:
+        return m.group(1)
+    m = DOCS_PATTERN.search(url)
+    if m:
+        return m.group(1)
+    m = SHEETS_PATTERN.search(url)
+    if m:
+        return m.group(1)
+    m = SLIDES_PATTERN.search(url)
     if m:
         return m.group(1)
     m = DRIVE_FILE_PATTERN.search(url)

@@ -48,7 +48,8 @@ export function ChatInput({
   const checkDriveLink = (text: string): boolean => {
     if (!onDriveLink) return false;
     const trimmed = text.trim();
-    if (trimmed.includes("drive.google.com")) {
+    const isGoogleDocUrl = /(?:drive|docs|sheets|slides)\.google\.com/.test(trimmed);
+    if (isGoogleDocUrl) {
       if (isValidDriveUrl(trimmed)) {
         setDriveError("");
         onDriveLink(trimmed);

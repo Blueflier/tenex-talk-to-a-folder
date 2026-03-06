@@ -199,6 +199,44 @@ describe("IndexedDB persistence layer", () => {
       expect(loaded[0].content).toBe("Previous answer");
     });
 
+    it("saveChat with indexed_files roundtrips correctly", async () => {
+      const chat: Chat = {
+        session_id: "hydrate-session",
+        title: "Hydrate Test",
+        created_at: "2024-01-01T00:00:00Z",
+        last_message_at: "2024-01-01T00:00:00Z",
+        indexed_sources: ["f1"],
+        indexed_files: [
+          { file_id: "f1", file_name: "Doc.gdoc", indexed_at: "2024-01-01T00:00:00Z" },
+        ],
+      };
+
+      await saveChat(chat);
+      const chats = await getChats();
+
+      expect(chats).toHaveLength(1);
+      expect(chats[0].indexed_files).toHaveLength(1);
+      expect(chats[0].indexed_files![0].file_id).toBe("f1");
+      expect(chats[0].indexed_files![0].file_name).toBe("Doc.gdoc");
+      expect(chats[0].indexed_files![0].indexed_at).toBe("2024-01-01T00:00:00Z");
+    });
+
+    it("saveChat without indexed_files returns undefined for field (backward compat)", async () => {
+      const chat: Chat = {
+        session_id: "no-files-session",
+        title: "No Files",
+        created_at: "2024-01-01T00:00:00Z",
+        last_message_at: "2024-01-01T00:00:00Z",
+        indexed_sources: [],
+      };
+
+      await saveChat(chat);
+      const chats = await getChats();
+
+      expect(chats).toHaveLength(1);
+      expect(chats[0].indexed_files).toBeUndefined();
+    });
+
     it("getChats returns chats sorted by last_message_at descending", async () => {
       const chat1: Chat = {
         session_id: "old-chat",

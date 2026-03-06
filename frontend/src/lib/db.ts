@@ -7,6 +7,7 @@ export interface Chat {
   created_at: string;
   last_message_at: string;
   indexed_sources: string[];
+  indexed_files?: Array<{ file_id: string; file_name: string; indexed_at: string }>;
 }
 
 export interface Message {
