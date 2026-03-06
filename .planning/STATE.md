@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-03-06T01:16:28Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-03-06T01:19:45.870Z"
 last_activity: 2026-03-06 -- Completed 04-04 Grep mime-type branching
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 94
 ---
 
@@ -63,6 +63,7 @@ Progress: [█████████░] 94%
 | Phase 05-multi-session-polish P02 | 2min | 2 tasks | 5 files |
 | Phase 05-multi-session-polish P03 | 3min | 2 tasks | 5 files |
 | Phase 04-staleness-hybrid-retrieval P04 | 2min | 1 tasks | 4 files |
+| Phase 04 P05 | 4min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,8 @@ Recent decisions affecting current work:
 - [Phase 05-03]: Rate limit cooldown uses client-side 10s timer rather than server retry-after header
 - [Phase 04-04]: Imported EXPORT_MIME_MAP from backend.drive for grep fetch_and_extract branching
 - [Phase 04-04]: mime_type as keyword-only arg with empty string default for backward compatibility
+- [Phase 04]: onCompleteRef/onErrorRef pattern to stabilize IndexingModal useEffect deps
+- [Phase 04]: indexed_files stored as optional field on Chat for backward compat
 
 ### Pending Todos
 
@@ -127,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:16:28Z
-Stopped at: Completed 04-04-PLAN.md
-Resume file: .planning/phases/04-staleness-hybrid-retrieval/04-04-SUMMARY.md
+Last session: 2026-03-06T01:19:45.867Z
+Stopped at: Completed 04-05-PLAN.md
+Resume file: None
