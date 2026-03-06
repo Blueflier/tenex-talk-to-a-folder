@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Retrieval + Chat** - Cosine similarity retrieval, streaming LLM responses with inline citations
 - [ ] **Phase 4: Staleness + Hybrid Retrieval** - Staleness detection, grep_live for stale files, per-file re-indexing
 - [x] **Phase 5: Multi-session + Polish** - Sidebar chat management, duplicate detection, multi-link, error states, rate limiting (completed 2026-03-06)
-- [ ] **Phase 6: Eval Harness** - QASPER eval pipeline with diagnostic classification and LLM judge
+- [ ] **Phase 6: Eval Harness** - QASPER eval pipeline with token F1 scoring and diagnostic classification
 
 ## Phase Details
 
@@ -114,12 +114,13 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. QASPER dataset loads and feeds questions through the retrieval + chat pipeline
   2. Each eval sample is classified as CRAWL_MISS, RETRIEVAL_MISS, STALE_MISS, or SYNTHESIS_FAIL
-  3. LLM judge scores correctness automatically with reproducible results
+  3. Token F1 scores correctness automatically with reproducible results
   4. Drive delta test compares local eval scores vs real Drive-via-PyMuPDF scores on 5 papers
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md — Scoring, classification, and dataset modules with TDD (scoring.py, classify.py, dataset.py)
+- [ ] 06-02-PLAN.md — Eval pipeline wiring: client, cache, auth bypass, run_eval.py, run_drive_delta.py
 
 ## Progress
 
@@ -134,4 +135,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Retrieval + Chat | 3/3 | Complete | 2026-03-05 |
 | 4. Staleness + Hybrid Retrieval | 4/5 | In Progress|  |
 | 5. Multi-session + Polish | 3/3 | Complete   | 2026-03-06 |
-| 6. Eval Harness | 0/? | Not started | - |
+| 6. Eval Harness | 0/2 | Not started | - |
