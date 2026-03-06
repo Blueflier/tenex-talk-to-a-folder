@@ -19,7 +19,7 @@ type ModalState = "extracting" | "embedding" | "success" | "error";
 interface IndexingResult {
   filesIndexed: number;
   totalChunks: number;
-  indexedSources: Array<{ file_id: string; file_name: string }>;
+  indexedSources: Array<{ file_id: string; file_name: string; indexed_at: string }>;
 }
 
 interface IndexingModalProps {
@@ -47,7 +47,11 @@ export function IndexingModal({
   const [totalChunks, setTotalChunks] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const abortRef = useRef<AbortController | null>(null);
-  const startedRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
   const reset = useCallback(() => {
     setState("extracting");
@@ -55,18 +59,17 @@ export function IndexingModal({
     setEmbedded(0);
     setTotalChunks(0);
     setErrorMessage("");
-    startedRef.current = false;
   }, []);
 
   useEffect(() => {
-    if (!open || !driveUrl || startedRef.current) return;
-    startedRef.current = true;
+    if (!open || !driveUrl) return;
 
     const controller = new AbortController();
     abortRef.current = controller;
 
     (async () => {
       try {
+        if (controller.signal.aborted) return;
         const response = await streamIndex(
           driveUrl,
           sessionId,
@@ -139,6 +142,7 @@ export function IndexingModal({
               const data = JSON.parse(event.data) as {
                 files_indexed: number;
                 total_chunks: number;
+                indexed_at: string;
                 skipped_files?: Array<{
                   file_id: string;
                   file_name: string;
@@ -147,7 +151,7 @@ export function IndexingModal({
               };
 
               if (data.files_indexed === 0) {
-                onError("No files were successfully indexed");
+                onErrorRef.current("No files were successfully indexed");
                 reset();
                 return;
               }
@@ -164,8 +168,9 @@ export function IndexingModal({
                     .map((f) => ({
                       file_id: f.file_id,
                       file_name: f.file_name,
+                      indexed_at: data.indexed_at,
                     }));
-                  onComplete({
+                  onCompleteRef.current({
                     filesIndexed: data.files_indexed,
                     totalChunks: data.total_chunks,
                     indexedSources,
@@ -206,7 +211,7 @@ export function IndexingModal({
     return () => {
       controller.abort();
     };
-  }, [open, driveUrl, sessionId, token, onComplete, onError, reset]);
+  }, [open, driveUrl, sessionId, token, reset]);
 
   const handleCancel = () => {
     abortRef.current?.abort();
