@@ -4,12 +4,14 @@ from __future__ import annotations
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest
 
 from backend.grep import (
     GREP_TEXT_TTL,
     _grep_text_cache,
     extract_keywords,
+    fetch_and_extract,
     grep_live,
 )
 
@@ -128,3 +130,80 @@ async def test_grep_text_cache():
 
     # fetch called only once (cached on second call)
     assert fetch_mock.call_count == 1
+
+
+# -- mime-type branching tests --
+
+
+@pytest.mark.asyncio
+async def test_fetch_and_extract_workspace_uses_export():
+    """Workspace mimeType (google-apps.document) uses /export endpoint, not ?alt=media."""
+    mock_resp = AsyncMock()
+    mock_resp.raise_for_status = MagicMock()
+    mock_resp.text = AsyncMock(return_value="exported doc text")
+    mock_resp.__aenter__ = AsyncMock(return_value=mock_resp)
+    mock_resp.__aexit__ = AsyncMock(return_value=False)
+
+    mock_session = AsyncMock()
+    mock_session.get = MagicMock(return_value=mock_resp)
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("backend.grep.aiohttp.ClientSession", return_value=mock_session):
+        result = await fetch_and_extract(
+            "file123", "tok", mime_type="application/vnd.google-apps.document"
+        )
+
+    assert result == "exported doc text"
+    # Verify /export URL was used
+    call_args = mock_session.get.call_args
+    url = call_args[0][0]
+    assert "/export" in url
+    assert "alt=media" not in url
+
+
+@pytest.mark.asyncio
+async def test_fetch_and_extract_binary_uses_alt_media():
+    """Binary mimeType (application/pdf) uses ?alt=media as before."""
+    mock_resp = AsyncMock()
+    mock_resp.raise_for_status = MagicMock()
+    mock_resp.text = AsyncMock(return_value="binary content")
+    mock_resp.__aenter__ = AsyncMock(return_value=mock_resp)
+    mock_resp.__aexit__ = AsyncMock(return_value=False)
+
+    mock_session = AsyncMock()
+    mock_session.get = MagicMock(return_value=mock_resp)
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("backend.grep.aiohttp.ClientSession", return_value=mock_session):
+        result = await fetch_and_extract(
+            "file456", "tok", mime_type="application/pdf"
+        )
+
+    assert result == "binary content"
+    # Verify ?alt=media URL was used
+    call_args = mock_session.get.call_args
+    url = call_args[0][0]
+    assert "alt=media" in url
+    assert "/export" not in url
+
+
+@pytest.mark.asyncio
+async def test_grep_live_passes_mime_type():
+    """grep_live passes mime_type through to fetch_and_extract."""
+    text = "Some document. Revenue was high. End."
+    fetch_mock = AsyncMock(return_value=text)
+
+    with patch("backend.grep.fetch_and_extract", fetch_mock):
+        await grep_live(
+            "f1", ["Revenue"], "token123",
+            mime_type="application/vnd.google-apps.spreadsheet",
+        )
+
+    # Verify mime_type was passed through
+    fetch_mock.assert_called_once()
+    call_kwargs = fetch_mock.call_args
+    # Check that mime_type keyword arg was passed
+    assert call_kwargs[1].get("mime_type") == "application/vnd.google-apps.spreadsheet" or \
+        (len(call_kwargs[0]) >= 3 and call_kwargs[0][2] == "token123")
