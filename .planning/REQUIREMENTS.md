@@ -77,9 +77,9 @@
 
 ### Eval Harness
 
-- [ ] **EVAL-01**: QASPER dataset integration for eval pipeline
-- [ ] **EVAL-02**: Diagnostic classification: CRAWL_MISS, RETRIEVAL_MISS, STALE_MISS, SYNTHESIS_FAIL per sample
-- [ ] **EVAL-03**: LLM judge for automated correctness scoring
+- [x] **EVAL-01**: QASPER dataset integration for eval pipeline
+- [x] **EVAL-02**: Diagnostic classification: CRAWL_MISS, RETRIEVAL_MISS, STALE_MISS, SYNTHESIS_FAIL per sample
+- [x] **EVAL-03**: LLM judge for automated correctness scoring
 - [ ] **EVAL-04**: Drive delta test: compare local eval scores vs real Drive-via-PyMuPDF scores on 5 papers
 
 ## v2 Requirements
@@ -166,9 +166,9 @@
 | PERS-02 | Phase 1 | Complete |
 | PERS-03 | Phase 1 | Complete |
 | PERS-04 | Phase 3 | Complete |
-| EVAL-01 | Phase 6 | Pending |
-| EVAL-02 | Phase 6 | Pending |
-| EVAL-03 | Phase 6 | Pending |
+| EVAL-01 | Phase 6 | Complete |
+| EVAL-02 | Phase 6 | Complete |
+| EVAL-03 | Phase 6 | Complete |
 | EVAL-04 | Phase 6 | Pending |
 
 **Coverage:**

@@ -135,4 +135,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Retrieval + Chat | 3/3 | Complete | 2026-03-05 |
 | 4. Staleness + Hybrid Retrieval | 4/5 | In Progress|  |
 | 5. Multi-session + Polish | 3/3 | Complete   | 2026-03-06 |
-| 6. Eval Harness | 0/2 | Not started | - |
+| 6. Eval Harness | 1/2 | In Progress|  |

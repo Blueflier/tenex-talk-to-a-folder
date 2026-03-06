@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-03-06T01:24:19.341Z"
-last_activity: 2026-03-06 -- Completed 04-04 Grep mime-type branching
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-06T01:37:45Z"
+last_activity: 2026-03-06 -- Completed 06-01 Eval core modules (scoring, classify, dataset)
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 18
-  completed_plans: 18
-  percent: 94
+  completed_plans: 19
+  percent: 95
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2025-03-05)
 
 **Core value:** Users get accurate, cited answers from their own Google Drive files -- every citation points to the exact file, page, and passage.
-**Current focus:** Phase 04 gap closure -- grep mime-type branching
+**Current focus:** Phase 06 eval harness -- core modules
 
 ## Current Position
 
-Phase: 4 of 6 -- Staleness + Hybrid Retrieval (gap closure)
-Plan: 04-04 complete
+Phase: 6 of 6 -- Eval Harness
+Plan: 06-01 complete
 Status: Executing
-Last activity: 2026-03-06 -- Completed 04-04 Grep mime-type branching
+Last activity: 2026-03-06 -- Completed 06-01 Eval core modules (scoring, classify, dataset)
 
-Progress: [█████████░] 94%
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [█████████░] 94%
 | Phase 05-multi-session-polish P03 | 3min | 2 tasks | 5 files |
 | Phase 04-staleness-hybrid-retrieval P04 | 2min | 1 tasks | 4 files |
 | Phase 04 P05 | 4min | 2 tasks | 7 files |
+| Phase 06-eval-harness P01 | 3min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,10 @@ Recent decisions affecting current work:
 - [Phase 04-04]: mime_type as keyword-only arg with empty string default for backward compatibility
 - [Phase 04]: onCompleteRef/onErrorRef pattern to stabilize IndexingModal useEffect deps
 - [Phase 04]: indexed_files stored as optional field on Chat for backward compat
+- [Phase 06-01]: SQuAD-style normalize_answer with article/punctuation/whitespace removal
+- [Phase 06-01]: Counter intersection for token F1 precision/recall
+- [Phase 06-01]: Type-aware scoring: exact match for yes_no/unanswerable, token F1 for extractive/abstractive
+- [Phase 06-01]: Cosine similarity threshold 0.7 default for RETRIEVAL_MISS classification
 
 ### Pending Todos
 
@@ -130,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:19:45.867Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-03-06T01:37:45Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
