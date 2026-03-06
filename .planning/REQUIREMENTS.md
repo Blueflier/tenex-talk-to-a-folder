@@ -80,7 +80,7 @@
 - [x] **EVAL-01**: QASPER dataset integration for eval pipeline
 - [x] **EVAL-02**: Diagnostic classification: CRAWL_MISS, RETRIEVAL_MISS, STALE_MISS, SYNTHESIS_FAIL per sample
 - [x] **EVAL-03**: LLM judge for automated correctness scoring
-- [ ] **EVAL-04**: Drive delta test: compare local eval scores vs real Drive-via-PyMuPDF scores on 5 papers
+- [x] **EVAL-04**: Drive delta test: compare local eval scores vs real Drive-via-PyMuPDF scores on 5 papers
 
 ## v2 Requirements
 
@@ -169,7 +169,7 @@
 | EVAL-01 | Phase 6 | Complete |
 | EVAL-02 | Phase 6 | Complete |
 | EVAL-03 | Phase 6 | Complete |
-| EVAL-04 | Phase 6 | Pending |
+| EVAL-04 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 53 total

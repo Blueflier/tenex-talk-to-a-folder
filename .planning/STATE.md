@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-06T01:37:45Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-06T01:45:54.891Z"
 last_activity: 2026-03-06 -- Completed 06-01 Eval core modules (scoring, classify, dataset)
 progress:
   total_phases: 6
-  completed_phases: 5
-  total_plans: 18
-  completed_plans: 19
+  completed_phases: 6
+  total_plans: 20
+  completed_plans: 20
   percent: 95
 ---
 
@@ -65,6 +65,7 @@ Progress: [█████████░] 95%
 | Phase 04-staleness-hybrid-retrieval P04 | 2min | 1 tasks | 4 files |
 | Phase 04 P05 | 4min | 2 tasks | 7 files |
 | Phase 06-eval-harness P01 | 3min | 2 tasks | 9 files |
+| Phase 06 P02 | 5min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Recent decisions affecting current work:
 - [Phase 06-01]: Counter intersection for token F1 precision/recall
 - [Phase 06-01]: Type-aware scoring: exact match for yes_no/unanswerable, token F1 for extractive/abstractive
 - [Phase 06-01]: Cosine similarity threshold 0.7 default for RETRIEVAL_MISS classification
+- [Phase 06]: EVAL_MODE env var in auth.py returns eval-user bypassing Google API
+- [Phase 06]: datasets 4.0 compat: revision=refs/convert/parquet for allenai/qasper
+- [Phase 06]: httpx.stream() for SSE parsing, full_text reconstruction fallback for PDFs
 
 ### Pending Todos
 
@@ -135,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:37:45Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-06T01:45:54.889Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
