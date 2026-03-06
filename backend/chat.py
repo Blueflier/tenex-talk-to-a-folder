@@ -132,6 +132,13 @@ async def _load_session_data(
     chunks_path = base / f"{session_id}_chunks.json"
     embeddings_path = base / f"{session_id}_embeddings.npy"
 
+    import os, sys
+    print(f"[DEBUG] Looking for: {chunks_path}", file=sys.stderr)
+    print(f"[DEBUG] Base exists: {base.exists()}", file=sys.stderr)
+    if base.exists():
+        print(f"[DEBUG] Base contents: {list(base.iterdir())}", file=sys.stderr)
+    print(f"[DEBUG] /data contents: {os.listdir('/data')}", file=sys.stderr)
+
     if not chunks_path.exists() or not embeddings_path.exists():
         raise HTTPException(status_code=404, detail="Session data not found")
 
@@ -209,8 +216,10 @@ async def _chat_event_stream(
         all_grep_results: list[dict[str, Any]] = []
         if grep_ids and file_list:
             keywords = await extract_keywords(query)
+            mime_map = {f["file_id"]: f.get("mimeType", "") for f in file_list}
             grep_tasks = [
-                grep_live(fid, keywords, access_token) for fid in grep_ids
+                grep_live(fid, keywords, access_token, mime_type=mime_map.get(fid, ""))
+                for fid in grep_ids
             ]
             grep_results_list = await asyncio.gather(*grep_tasks)
             for fid, results in zip(grep_ids, grep_results_list):
@@ -228,7 +237,10 @@ async def _chat_event_stream(
             return
 
         # Check threshold only if no grep results to supplement
-        if not all_grep_results and check_threshold(retrieved):
+        # Skip threshold for broad queries (summarize, overview, etc.)
+        _broad_keywords = {"summarize", "summary", "overview", "explain", "describe", "tell me about", "what is"}
+        is_broad = any(kw in query.lower() for kw in _broad_keywords)
+        if not is_broad and not all_grep_results and check_threshold(retrieved):
             yield f'data: {json.dumps({"type": "no_results"})}\n\n'
             yield "data: [DONE]\n\n"
             return
@@ -294,6 +306,9 @@ async def chat_endpoint(
     if _check_rate_limit(session_id):
         raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again in a minute.")
     _rate_limits[session_id].append(time.time())
+
+    import sys
+    print(f"[CHAT] user={user_id} session={session_id} query={query!r}", file=sys.stderr)
 
     return StreamingResponse(
         _chat_event_stream(query, user_id, session_id, file_list, token),

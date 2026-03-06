@@ -86,7 +86,7 @@ async def test_grep_live_matches():
     """Returns matches with context windows (1 sentence before + after)."""
     text = "First sentence about nothing. Revenue was 100M in Q3. Another sentence here. Unrelated content follows."
 
-    async def _fetch(fid, token):
+    async def _fetch(fid, token, *, mime_type=""):
         return text
 
     with patch("backend.grep.fetch_and_extract", side_effect=_fetch):
@@ -109,7 +109,7 @@ async def test_grep_live_cap():
     sentences = [f"Revenue item {i} is important." for i in range(30)]
     text = " ".join(sentences)
 
-    async def _fetch(fid, token):
+    async def _fetch(fid, token, *, mime_type=""):
         return text
 
     with patch("backend.grep.fetch_and_extract", side_effect=_fetch):
@@ -203,7 +203,5 @@ async def test_grep_live_passes_mime_type():
 
     # Verify mime_type was passed through
     fetch_mock.assert_called_once()
-    call_kwargs = fetch_mock.call_args
-    # Check that mime_type keyword arg was passed
-    assert call_kwargs[1].get("mime_type") == "application/vnd.google-apps.spreadsheet" or \
-        (len(call_kwargs[0]) >= 3 and call_kwargs[0][2] == "token123")
+    _, kwargs = fetch_mock.call_args
+    assert kwargs.get("mime_type") == "application/vnd.google-apps.spreadsheet"

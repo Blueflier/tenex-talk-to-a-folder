@@ -8,6 +8,7 @@ import time
 import aiohttp
 
 from backend.config import get_llm_client
+from backend.drive import DRIVE_API_BASE, EXPORT_MIME_MAP
 
 # Cache: file_id -> (text, fetched_at_epoch)
 _grep_text_cache: dict[str, tuple[str, float]] = {}
@@ -57,9 +58,20 @@ Example output: ["revenue", "sales", "income", "ARR", "MRR", "earnings", "Q3 rev
     return [w for w in query.lower().split() if w not in STOPWORDS and len(w) > 1]
 
 
-async def fetch_and_extract(file_id: str, access_token: str) -> str:
-    """Fetch file content from Google Drive and return extracted text."""
-    url = f"https://www.googleapis.com/drive/v3/files/{file_id}?alt=media"
+async def fetch_and_extract(
+    file_id: str, access_token: str, *, mime_type: str = ""
+) -> str:
+    """Fetch file content from Google Drive and return extracted text.
+
+    For Google Workspace files (Docs/Sheets/Slides), uses the /export endpoint.
+    For binary files (PDF, TXT, etc.), uses ?alt=media.
+    """
+    if mime_type in EXPORT_MIME_MAP:
+        export_mime = EXPORT_MIME_MAP[mime_type]
+        url = f"{DRIVE_API_BASE}/{file_id}/export?mimeType={export_mime}"
+    else:
+        url = f"{DRIVE_API_BASE}/{file_id}?alt=media"
+
     async with aiohttp.ClientSession() as session:
         async with session.get(
             url, headers={"Authorization": f"Bearer {access_token}"}
@@ -69,7 +81,8 @@ async def fetch_and_extract(file_id: str, access_token: str) -> str:
 
 
 async def grep_live(
-    file_id: str, keywords: list[str], access_token: str
+    file_id: str, keywords: list[str], access_token: str,
+    *, mime_type: str = "",
 ) -> list[dict]:
     """Search file text for keyword matches with context windows.
 
@@ -82,7 +95,7 @@ async def grep_live(
     if cached and (now - cached[1]) < GREP_TEXT_TTL:
         text = cached[0]
     else:
-        text = await fetch_and_extract(file_id, access_token)
+        text = await fetch_and_extract(file_id, access_token, mime_type=mime_type)
         _grep_text_cache[file_id] = (text, time.time())
 
     sentences = re.split(r"(?<=[.!?])\s+", text)

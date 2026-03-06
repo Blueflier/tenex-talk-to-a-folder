@@ -121,7 +121,7 @@ def _mock_extract_keywords(keywords=None):
 
 def _mock_grep_live(results_by_fid=None):
     """Mock grep_live to return results per file_id."""
-    async def _grep(fid, keywords, token):
+    async def _grep(fid, keywords, token, *, mime_type=""):
         if results_by_fid and fid in results_by_fid:
             return results_by_fid[fid]
         return [{"text": f"Grep result for {fid}", "matched_keyword": "keyword1", "sentence_index": 0, "file_id": fid}]
