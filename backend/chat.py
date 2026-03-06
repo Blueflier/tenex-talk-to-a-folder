@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, AsyncGenerator
 
@@ -22,6 +24,24 @@ from backend.retrieval import (
 from backend.staleness import check_staleness
 
 router = APIRouter()
+
+# Rate limiting: sliding window of timestamps per session_id
+_rate_limits: dict[str, list[float]] = defaultdict(list)
+_RATE_LIMIT_MAX = 10
+_RATE_LIMIT_WINDOW = 60  # seconds
+
+
+def _check_rate_limit(session_id: str) -> bool:
+    """Check if session_id has exceeded the rate limit.
+
+    Uses a sliding window: prune timestamps older than 60s,
+    return True if limit exceeded (>= 10 requests in window).
+    """
+    now = time.time()
+    timestamps = _rate_limits[session_id]
+    # Prune old timestamps
+    _rate_limits[session_id] = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
+    return len(_rate_limits[session_id]) >= _RATE_LIMIT_MAX
 
 # Embedding model for queries
 EMBEDDING_MODEL = "text-embedding-3-small"
@@ -104,6 +124,10 @@ async def _load_session_data(
     user_id: str, session_id: str
 ) -> tuple[list[dict[str, Any]], np.ndarray]:
     """Load chunks and embeddings from Volume storage."""
+    from backend.app import volume as app_volume
+
+    app_volume.reload()
+
     base = VOLUME_PATH / user_id
     chunks_path = base / f"{session_id}_chunks.json"
     embeddings_path = base / f"{session_id}_embeddings.npy"
@@ -266,6 +290,10 @@ async def chat_endpoint(
 
     if not session_id or not query:
         raise HTTPException(status_code=400, detail="session_id and query required")
+
+    if _check_rate_limit(session_id):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again in a minute.")
+    _rate_limits[session_id].append(time.time())
 
     return StreamingResponse(
         _chat_event_stream(query, user_id, session_id, file_list, token),

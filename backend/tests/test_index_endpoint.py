@@ -92,7 +92,7 @@ def _mock_embed_chunks(dim=1536):
 
 
 def _mock_save_session():
-    return patch("backend.index.save_session")
+    return patch("backend.index.append_session")
 
 
 def _mock_volume():

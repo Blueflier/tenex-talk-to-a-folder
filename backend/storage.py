@@ -71,3 +71,33 @@ def load_session(
         chunks = json.load(f)
 
     return embeddings, chunks
+
+
+def append_session(
+    user_id: str,
+    session_id: str,
+    new_embeddings: np.ndarray,
+    new_chunks: list[dict],
+    volume,
+    base_path: Path | None = None,
+) -> None:
+    """Append embeddings and chunks to an existing session, or create if none exists.
+
+    Args:
+        user_id: User identifier for namespacing.
+        session_id: Session identifier.
+        new_embeddings: New embeddings to append.
+        new_chunks: New chunk dicts to append.
+        volume: Modal Volume instance (must have .commit()).
+        base_path: Override VOLUME_PATH for testing.
+    """
+    root = base_path if base_path is not None else VOLUME_PATH
+    emb_path = root / user_id / f"{session_id}_embeddings.npy"
+
+    if emb_path.exists():
+        existing_emb, existing_chunks = load_session(user_id, session_id, base_path=base_path)
+        combined_emb = np.concatenate([existing_emb, new_embeddings])
+        combined_chunks = existing_chunks + new_chunks
+        save_session(user_id, session_id, combined_emb, combined_chunks, volume, base_path=base_path)
+    else:
+        save_session(user_id, session_id, new_embeddings, new_chunks, volume, base_path=base_path)

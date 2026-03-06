@@ -22,7 +22,7 @@ from backend.drive import (
     resolve_drive_link,
 )
 from backend.embedding import embed_chunks
-from backend.storage import save_session
+from backend.storage import append_session
 
 router = APIRouter()
 
@@ -205,7 +205,7 @@ async def _index_event_stream(
 
         # 7. Storage
         if embeddings.shape[0] > 0:
-            save_session(user_id, session_id, embeddings, all_chunks, volume)
+            append_session(user_id, session_id, embeddings, all_chunks, volume)
 
         # 8. Complete
         yield _sse_event("complete", {
