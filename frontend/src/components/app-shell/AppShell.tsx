@@ -272,7 +272,19 @@ export function AppShell({ token }: AppShellProps) {
   const handleIndexError = useCallback((message: string) => {
     setIndexingOpen(false);
     setDriveUrl("");
-    toast.error(message);
+
+    const lower = message.toLowerCase();
+    if (lower.includes("403") || lower.includes("access")) {
+      toast.error("Access denied. Check file sharing permissions.", { duration: 6000 });
+    } else if (lower.includes("404")) {
+      toast.error("File or folder not found. It may have been moved or deleted.", { duration: 6000 });
+    } else if (lower.includes("empty")) {
+      toast.warning("This folder is empty.", { duration: 5000 });
+    } else if (lower.includes("scanned")) {
+      toast.warning("Scanned PDFs without text can't be indexed.", { duration: 5000 });
+    } else {
+      toast.error(message, { duration: 5000 });
+    }
   }, []);
 
   // Derive per-session data

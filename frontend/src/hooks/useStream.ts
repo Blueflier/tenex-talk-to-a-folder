@@ -57,10 +57,22 @@ export function useStream(callbacks: UseStreamCallbacks) {
         });
 
         if (!response.ok) {
-          const text = await response.text();
-          callbacksRef.current.onError(
-            `Request failed: ${response.status} ${text}`
-          );
+          if (response.status === 429) {
+            callbacksRef.current.onError("rate_limited");
+            setIsStreaming(false);
+            return;
+          }
+          if (response.status === 401 || response.status === 403) {
+            callbacksRef.current.onError("auth_expired");
+            setIsStreaming(false);
+            return;
+          }
+          if (response.status === 404) {
+            callbacksRef.current.onError("session_not_found");
+            setIsStreaming(false);
+            return;
+          }
+          callbacksRef.current.onError(`server_error_${response.status}`);
           setIsStreaming(false);
           return;
         }
@@ -128,9 +140,7 @@ export function useStream(callbacks: UseStreamCallbacks) {
         if (err instanceof DOMException && err.name === "AbortError") {
           // User aborted — not an error
         } else {
-          callbacksRef.current.onError(
-            err instanceof Error ? err.message : "Stream failed"
-          );
+          callbacksRef.current.onError("connection_lost");
         }
       } finally {
         setIsStreaming(false);

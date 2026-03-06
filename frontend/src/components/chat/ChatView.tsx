@@ -31,6 +31,7 @@ export function ChatView({
   const [prefill, setPrefill] = useState("");
   const [messages, setMessages] = useState<MessageData[]>(initialMessages);
   const [needsAuth, setNeedsAuth] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
   const [activeCitation, setActiveCitation] = useState<{
     citation: Citation;
     anchorEl: HTMLElement;
@@ -129,17 +130,30 @@ export function ChatView({
       });
     },
     onError(message) {
+      // Map error codes to user-friendly toasts
+      if (message === "rate_limited") {
+        toast.error("Too many requests. Please wait a moment.", { duration: 6000 });
+        setRateLimited(true);
+        setTimeout(() => setRateLimited(false), 10_000);
+      } else if (message === "auth_expired") {
+        toast.error("Session expired. Please sign in again.", { duration: 8000 });
+        setNeedsAuth(true);
+      } else if (message === "session_not_found") {
+        toast.error("Chat data not found on server. Try re-indexing your files.", { duration: 6000 });
+      } else if (message === "connection_lost") {
+        toast.error("Connection lost. Check your network and try again.", { duration: 6000 });
+      } else if (message.startsWith("server_error_")) {
+        toast.error("Something went wrong. Please try again.", { duration: 5000 });
+      } else {
+        toast.error(message, { duration: 5000 });
+      }
+
+      // Clear streaming placeholder
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.isStreaming) {
-          return [
-            ...prev.slice(0, -1),
-            {
-              ...last,
-              content: `Error: ${message}`,
-              isStreaming: false,
-            },
-          ];
+          // Remove the empty streaming placeholder on error
+          return prev.slice(0, -1);
         }
         return prev;
       });
@@ -257,8 +271,8 @@ export function ChatView({
 
   const showEmptyState = messages.length === 0 && indexedSources.length > 0;
 
-  // Send button disabled during streaming OR reindexing
-  const isSendDisabled = isStreaming || isReindexing;
+  // Send button disabled during streaming, reindexing, or rate limit
+  const isSendDisabled = isStreaming || isReindexing || rateLimited;
 
   return (
     <div className="flex flex-col h-full">
@@ -285,7 +299,13 @@ export function ChatView({
         onSend={handleSend}
         onStop={abort}
         prefill={prefill}
-        disabledTooltip={isReindexing ? "Re-indexing in progress" : undefined}
+        disabledTooltip={
+          rateLimited
+            ? "Rate limited -- please wait"
+            : isReindexing
+              ? "Re-indexing in progress"
+              : undefined
+        }
       />
       <CitationPopover
         citation={activeCitation?.citation ?? null}
