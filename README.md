@@ -6,13 +6,13 @@ A RAG application that lets you chat with your Google Drive files. Paste a Drive
 
 ```
 ┌──────────────┐       SSE        ┌──────────────────────┐
-│   React SPA  │◄────────────────►│  FastAPI on Modal    │
+│   React SPA  │◄────────────────►│  FastAPI on Fly.io   │
 │  (Vite + TS) │                  │                      │
 │              │                  │  /index  - indexing   │
 │  IndexedDB   │                  │  /chat   - streaming  │
 │  (messages,  │                  │  /reindex - per-file  │
 │   sessions)  │                  │                      │
-└──────────────┘                  │  Modal Volume (/data) │
+└──────────────┘                  │  Fly Volume (/data)   │
                                   │  (embeddings + chunks)│
                                   └──────────────────────┘
                                           │
@@ -23,8 +23,8 @@ A RAG application that lets you chat with your Google Drive files. Paste a Drive
                                   └──────────────────┘
 ```
 
-**Backend** (Python, FastAPI, Modal):
-- **Indexing pipeline**: Drive link → file export → type-specific chunking → OpenAI embeddings → Modal Volume storage
+**Backend** (Python, FastAPI, Fly.io):
+- **Indexing pipeline**: Drive link → file export → type-specific chunking → OpenAI embeddings → Fly Volume storage
 - **Hybrid retrieval**: Cosine similarity over embeddings + live keyword grep for stale files
 - **Staleness detection**: Compares Drive `modifiedTime` against `indexed_at` to detect changed/deleted files
 - **Streaming chat**: SSE-based token streaming with DeepSeek (configurable to OpenAI)
@@ -39,8 +39,8 @@ A RAG application that lets you chat with your Google Drive files. Paste a Drive
 
 ### Prerequisites
 - Node.js 18+, pnpm
-- Python 3.11+
-- [Modal](https://modal.com) account (for deployment) or local dev mode
+- Python 3.13+
+- [Fly.io](https://fly.io) account (for deployment) or local dev mode
 - Google Cloud project with OAuth 2.0 credentials and Drive API enabled
 - OpenAI API key (embeddings)
 - DeepSeek API key (LLM) or OpenAI key with `ACTIVE_MODEL=openai`
@@ -51,25 +51,25 @@ A RAG application that lets you chat with your Google Drive files. Paste a Drive
 cp .env.example .env.local
 # Fill in API keys in .env.local
 
-pip install fastapi aiohttp openai numpy pymupdf uvicorn python-dotenv
+pip install -r requirements.txt
 
 # Run locally with auth bypass
-EVAL_MODE=1 VOLUME_PATH=./data uvicorn backend.app:web_app --reload --port 8000
+EVAL_MODE=1 DATA_DIR=./data uvicorn backend.app:web_app --reload --port 8000
 ```
 
 ### Frontend
 
 ```bash
 cd frontend
-cp .env.example .env  # or create with VITE_API_URL and VITE_GOOGLE_CLIENT_ID
+cp .env.example .env  # set VITE_API_URL and VITE_GOOGLE_CLIENT_ID
 pnpm install
 pnpm dev
 ```
 
-### Deploy to Modal
+### Deploy to Fly.io
 
 ```bash
-modal deploy backend/app.py
+fly deploy
 ```
 
 ## Key Design Decisions
@@ -82,7 +82,7 @@ modal deploy backend/app.py
 
 ## Problems We Encountered
 
-- **IndexedDB on serverless**: We initially wanted to use IndexedDB for server-side storage, but ran into idempotency issues when deploying on a serverless architecture (Modal). Each container instance has its own isolated state, so there's no guarantee that consecutive requests hit the same container. This also meant we couldn't rate-limit users without a shared key-value cache across all containers serving the `/chat` endpoint. **Takeaway**: don't design for serverless constraints unless you actually need to scale that way — it introduces complexity (shared state, distributed caching) that isn't worth it for most use cases.
+- **Serverless → single-machine**: We originally deployed on Modal (serverless), but each container instance had isolated state — no guarantee consecutive requests hit the same container. This made persistent storage and rate-limiting hard without a shared cache. We moved to Fly.io with a persistent volume mount, which gives us a single machine with stable local disk for embeddings/chunks. **Takeaway**: don't design for serverless constraints unless you actually need to scale that way.
 
 ## Testing
 

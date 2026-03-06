@@ -1,4 +1,4 @@
-import { formatCitationLabel, type Citation } from "@/lib/citations";
+import { type Citation } from "@/lib/citations";
 
 interface CitationFooterProps {
   citations: Citation[];
