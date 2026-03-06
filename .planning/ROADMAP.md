@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Indexing Pipeline** - Drive link resolution, file extraction, chunking, embedding, Modal Volume storage (completed 2026-03-05)
 - [ ] **Phase 3: Retrieval + Chat** - Cosine similarity retrieval, streaming LLM responses with inline citations
 - [ ] **Phase 4: Staleness + Hybrid Retrieval** - Staleness detection, grep_live for stale files, per-file re-indexing
-- [ ] **Phase 5: Multi-session + Polish** - Sidebar chat management, duplicate detection, multi-link, error states, rate limiting
+- [x] **Phase 5: Multi-session + Polish** - Sidebar chat management, duplicate detection, multi-link, error states, rate limiting (completed 2026-03-06)
 - [ ] **Phase 6: Eval Harness** - QASPER eval pipeline with diagnostic classification and LLM judge
 
 ## Phase Details
@@ -133,5 +133,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Indexing Pipeline | 4/4 | Complete   | 2026-03-05 |
 | 3. Retrieval + Chat | 3/3 | Complete | 2026-03-05 |
 | 4. Staleness + Hybrid Retrieval | 3/3 | Complete | 2026-03-05 |
-| 5. Multi-session + Polish | 2/3 | In Progress|  |
+| 5. Multi-session + Polish | 3/3 | Complete   | 2026-03-06 |
 | 6. Eval Harness | 0/? | Not started | - |

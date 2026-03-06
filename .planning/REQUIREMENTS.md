@@ -26,7 +26,7 @@
 - [x] **INDX-10**: Chunks embedded in batches of 100 via OpenAI text-embedding-3-small
 - [x] **INDX-11**: Embeddings (.npy) and chunks (.json) saved to Modal Volume namespaced by user_id/session_id
 - [x] **INDX-12**: volume.commit() called after every write to prevent data loss
-- [ ] **INDX-13**: Duplicate upload detection by Drive file ID against IndexedDB before indexing
+- [x] **INDX-13**: Duplicate upload detection by Drive file ID against IndexedDB before indexing
 - [x] **INDX-14**: Multi-link sessions: pasting additional links appends to existing session embeddings
 
 ### Retrieval
@@ -57,9 +57,9 @@
 - [x] **UI-05**: Chat input bar with Drive link paste zone
 - [x] **UI-06**: Indexing progress: two-phase progress bars (extraction, embedding)
 - [x] **UI-07**: Citation rendering: PDF as "file.pdf, p.7", Sheet as "file.csv, row 12", Slides as "deck, slide 3"
-- [ ] **UI-08**: Error banners for all failure modes (403, 404, empty folder, scanned PDF, connection lost, etc.)
-- [ ] **UI-09**: Rate limit feedback: 429 response shown to user
-- [ ] **UI-10**: Duplicate upload notice with "Open that chat" / "Re-index here" options
+- [x] **UI-08**: Error banners for all failure modes (403, 404, empty folder, scanned PDF, connection lost, etc.)
+- [x] **UI-09**: Rate limit feedback: 429 response shown to user
+- [x] **UI-10**: Duplicate upload notice with "Open that chat" / "Re-index here" options
 
 ### Backend Infrastructure
 
@@ -133,7 +133,7 @@
 | INDX-10 | Phase 2 | Complete |
 | INDX-11 | Phase 2 | Complete |
 | INDX-12 | Phase 2 | Complete |
-| INDX-13 | Phase 5 | Pending |
+| INDX-13 | Phase 5 | Complete |
 | INDX-14 | Phase 5 | Complete |
 | RETR-01 | Phase 3 | Complete |
 | RETR-02 | Phase 3 | Complete |
@@ -155,9 +155,9 @@
 | UI-05 | Phase 2 | Complete |
 | UI-06 | Phase 2 | Complete |
 | UI-07 | Phase 3 | Complete |
-| UI-08 | Phase 5 | Pending |
-| UI-09 | Phase 5 | Pending |
-| UI-10 | Phase 5 | Pending |
+| UI-08 | Phase 5 | Complete |
+| UI-09 | Phase 5 | Complete |
+| UI-10 | Phase 5 | Complete |
 | INFR-01 | Phase 1 | Complete |
 | INFR-02 | Phase 1 | Complete |
 | INFR-03 | Phase 5 | Complete |

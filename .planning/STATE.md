@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2025-03-05)
 ## Current Position
 
 Phase: 5 of 6 -- Multi-session + Polish
-Plan: 05-02 complete
+Plan: 05-03 complete
 Status: Executing
-Last activity: 2026-03-05 -- Completed 05-02 Sidebar & multi-session
+Last activity: 2026-03-05 -- Completed 05-03 Duplicate detection, error toasts & rate limit
 
 Progress: [██████████] 100%
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100%
 | Phase 02-indexing-pipeline P04 | 16min | 4 tasks | 10 files |
 | Phase 05-multi-session-polish P01 | 3min | 1 tasks | 6 files |
 | Phase 05-multi-session-polish P02 | 2min | 2 tasks | 5 files |
+| Phase 05-multi-session-polish P03 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,9 @@ Recent decisions affecting current work:
 - [Phase 05-02]: ChatView keyed by selectedSessionId for clean remount on switch
 - [Phase 05-02]: abortRef for stream cancellation on session switch
 - [Phase 05-02]: Auto-create session on Drive link paste when none selected
+- [Phase 05-03]: resolveDriveFileIds returns empty array on error for graceful degradation
+- [Phase 05-03]: Error code strings from useStream mapped to sonner toasts in ChatView
+- [Phase 05-03]: Rate limit cooldown uses client-side 10s timer rather than server retry-after header
 
 ### Pending Todos
 
@@ -120,6 +124,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T00:02:00.000Z
-Stopped at: Completed 05-02-PLAN.md
-Resume file: .planning/phases/05-multi-session-polish/05-02-SUMMARY.md
+Last session: 2026-03-06T00:07:31Z
+Stopped at: Completed 05-03-PLAN.md
+Resume file: .planning/phases/05-multi-session-polish/05-03-SUMMARY.md
