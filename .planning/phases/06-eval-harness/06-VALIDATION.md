@@ -2,7 +2,7 @@
 phase: 6
 slug: eval-harness
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-03-05
 ---
@@ -41,11 +41,9 @@ created: 2026-03-05
 | 06-01-01 | 01 | 0 | EVAL-03 | unit | `python -m pytest eval/tests/test_scoring.py -x` | No - W0 | pending |
 | 06-01-02 | 01 | 0 | EVAL-02 | unit | `python -m pytest eval/tests/test_classify.py -x` | No - W0 | pending |
 | 06-01-03 | 01 | 0 | EVAL-01 | unit | `python -m pytest eval/tests/test_dataset.py -x` | No - W0 | pending |
-| 06-01-04 | 01 | 0 | EVAL-04 | unit | `python -m pytest eval/tests/test_drive_delta.py -x` | No - W0 | pending |
-| 06-02-01 | 02 | 1 | EVAL-01 | integration | `python eval/run_eval.py --dry-run` | No - W1 | pending |
-| 06-02-02 | 02 | 1 | EVAL-02 | integration | `python eval/run_eval.py --dry-run` | No - W1 | pending |
-| 06-03-01 | 03 | 2 | EVAL-03 | integration | `python eval/run_eval.py` | No - W2 | pending |
-| 06-03-02 | 03 | 2 | EVAL-04 | integration | `python eval/run_drive_delta.py` | No - W2 | pending |
+| 06-02-01 | 02 | 1 | EVAL-01 | integration | `python -c "from eval.cache import save_paper_cache; from eval.client import query_chat; print('ok')"` | No - W1 | pending |
+| 06-02-02 | 02 | 1 | EVAL-01 | integration | `python eval/run_eval.py --dry-run` | No - W1 | pending |
+| 06-02-03 | 02 | 1 | EVAL-04 | unit+integration | `python -m pytest eval/tests/test_drive_delta.py -x` | No - W0 | pending |
 
 *Status: pending / green / red / flaky*
 
@@ -73,11 +71,11 @@ created: 2026-03-05
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
