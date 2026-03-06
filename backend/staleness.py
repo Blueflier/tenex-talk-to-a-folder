@@ -1,10 +1,28 @@
-"""Staleness detection via Google Drive metadata comparison."""
+"""Staleness detection via Google Drive metadata comparison.
+
+NOTE: _staleness_cache is in-memory and per-container. With multiple Modal
+replicas, each container maintains its own cache. This is acceptable since the
+cache is a performance optimization with a short TTL, not a correctness
+requirement — redundant Drive API calls are safe, just slower.
+"""
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
+from datetime import datetime, timezone
 
-import aiohttp
+from backend.drive_client import DRIVE_API_BASE, drive_session
+
+logger = logging.getLogger(__name__)
+
+
+def _parse_iso(ts: str) -> datetime:
+    """Parse an ISO 8601 timestamp to a timezone-aware datetime."""
+    # Handle both "2026-03-05T20:00:00Z" and "2026-03-05T20:00:00.000Z"
+    ts = ts.replace("Z", "+00:00")
+    return datetime.fromisoformat(ts)
+
 
 # Cache: file_id -> (is_stale, error_or_None, checked_at_epoch)
 _staleness_cache: dict[str, tuple[bool, str | None, float]] = {}
@@ -12,11 +30,11 @@ STALENESS_TTL = 60
 
 
 async def get_file_metadata(
-    session: aiohttp.ClientSession, file_id: str, access_token: str
+    session, file_id: str,
 ) -> dict:
     """Fetch Drive file metadata. Returns error dict on 404/403."""
-    url = f"https://www.googleapis.com/drive/v3/files/{file_id}?fields=id,name,modifiedTime"
-    async with session.get(url, headers={"Authorization": f"Bearer {access_token}"}) as r:
+    url = f"{DRIVE_API_BASE}/{file_id}?fields=id,name,modifiedTime"
+    async with session.get(url) as r:
         if r.status == 404:
             return {"file_id": file_id, "error": "not_found"}
         if r.status == 403:
@@ -54,9 +72,9 @@ async def check_staleness(
         return stale_ids, file_errors
 
     # Fetch metadata for uncached files
-    async with aiohttp.ClientSession() as session:
+    async with drive_session(access_token) as session:
         tasks = [
-            get_file_metadata(session, f["file_id"], access_token)
+            get_file_metadata(session, f["file_id"])
             for f in uncached_files
         ]
         results = await asyncio.gather(*tasks)
@@ -68,9 +86,11 @@ async def check_staleness(
             stale_ids.add(fid)
             file_errors[fid] = meta["error"]
             _staleness_cache[fid] = (True, meta["error"], now)
-        elif meta["modifiedTime"] > f["indexed_at"]:
+            logger.info("staleness_check file_id=%s error=%s", fid, meta["error"])
+        elif _parse_iso(meta["modifiedTime"]) > _parse_iso(f["indexed_at"]):
             stale_ids.add(fid)
             _staleness_cache[fid] = (True, None, now)
+            logger.info("staleness_check file_id=%s stale=true", fid)
         else:
             _staleness_cache[fid] = (False, None, now)
 
@@ -81,5 +101,5 @@ def invalidate_caches(file_id: str) -> None:
     """Remove file_id from both staleness and grep text caches."""
     _staleness_cache.pop(file_id, None)
     # Import at function level to avoid circular imports
-    from backend import grep
-    grep._grep_text_cache.pop(file_id, None)
+    from backend.grep import _grep_text_cache
+    _grep_text_cache.pop(file_id, None)

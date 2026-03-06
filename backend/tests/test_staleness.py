@@ -68,7 +68,7 @@ async def test_check_staleness_fresh():
         }),
     }
 
-    with patch("backend.staleness.aiohttp.ClientSession", return_value=_mock_session(responses)):
+    with patch("backend.staleness.drive_session", return_value=_mock_session(responses)):
         stale_ids, file_errors = await check_staleness(file_list, "token123")
 
     assert "f1" not in stale_ids
@@ -87,7 +87,7 @@ async def test_check_staleness_stale():
         }),
     }
 
-    with patch("backend.staleness.aiohttp.ClientSession", return_value=_mock_session(responses)):
+    with patch("backend.staleness.drive_session", return_value=_mock_session(responses)):
         stale_ids, file_errors = await check_staleness(file_list, "token123")
 
     assert "f1" in stale_ids
@@ -106,7 +106,7 @@ async def test_staleness_error_handling():
         "f2": _mock_aiohttp_response(403, {}),
     }
 
-    with patch("backend.staleness.aiohttp.ClientSession", return_value=_mock_session(responses)):
+    with patch("backend.staleness.drive_session", return_value=_mock_session(responses)):
         stale_ids, file_errors = await check_staleness(file_list, "token123")
 
     assert "f1" in stale_ids
@@ -130,7 +130,7 @@ async def test_staleness_cache_ttl():
     mock_session_cls = MagicMock()
     mock_session_cls.return_value = _mock_session(responses)
 
-    with patch("backend.staleness.aiohttp.ClientSession", mock_session_cls):
+    with patch("backend.staleness.drive_session", mock_session_cls):
         stale1, _ = await check_staleness(file_list, "token123")
         stale2, _ = await check_staleness(file_list, "token123")
 
@@ -154,7 +154,7 @@ async def test_staleness_cache_expired():
     mock_session_cls = MagicMock()
     mock_session_cls.return_value = _mock_session(responses)
 
-    with patch("backend.staleness.aiohttp.ClientSession", mock_session_cls), \
+    with patch("backend.staleness.drive_session", mock_session_cls), \
          patch("backend.staleness.time") as mock_time:
         mock_time.time.side_effect = [100.0, 100.0, 200.0, 200.0]
         await check_staleness(file_list, "token123")

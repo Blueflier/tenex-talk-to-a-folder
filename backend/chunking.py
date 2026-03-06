@@ -1,8 +1,9 @@
 """Type-specific chunking strategies for Drive file content."""
+from backend.config import CHUNK_MAX_CHARS, CHUNK_OVERLAP
 
 
 def recursive_chunk(
-    text: str, max_chars: int = 1200, overlap: int = 150
+    text: str, max_chars: int = CHUNK_MAX_CHARS, overlap: int = CHUNK_OVERLAP
 ) -> list[str]:
     """Recursive character splitter. Skips empty/whitespace-only chunks."""
     if not text or not text.strip():

@@ -35,10 +35,10 @@ class TestSaveSession:
         save_session("user1", "sess1", embeddings, chunks, mock_volume, base_path=tmp_path)
         assert (tmp_path / "user1" / "sess1_chunks.json").exists()
 
-    def test_volume_commit_called_twice(self, tmp_path, mock_volume, sample_data):
+    def test_volume_commit_called_once(self, tmp_path, mock_volume, sample_data):
         embeddings, chunks = sample_data
         save_session("user1", "sess1", embeddings, chunks, mock_volume, base_path=tmp_path)
-        assert mock_volume.commit.call_count == 2
+        assert mock_volume.commit.call_count == 1
 
     def test_creates_user_directory(self, tmp_path, mock_volume, sample_data):
         embeddings, chunks = sample_data

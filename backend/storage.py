@@ -34,10 +34,10 @@ def save_session(
     chunks_path = session_dir / f"{session_id}_chunks.json"
 
     np.save(str(emb_path), embeddings)
-    volume.commit()
 
     with open(chunks_path, "w") as f:
         json.dump(chunks, f)
+
     volume.commit()
 
 

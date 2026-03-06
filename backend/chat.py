@@ -1,8 +1,16 @@
-"""/chat SSE endpoint with streaming LLM responses, hybrid retrieval, and staleness detection."""
+"""/chat SSE endpoint with streaming LLM responses, hybrid retrieval, and staleness detection.
+
+NOTE: _rate_limits is in-memory and per-container. With multiple Modal replicas,
+each container enforces its own rate limit independently. This means the effective
+limit scales with replica count (N replicas = N * 10 req/min per session). For
+this app's scale this is acceptable — a shared Redis counter would be the fix if
+abuse becomes an issue.
+"""
 from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -23,9 +31,10 @@ from backend.retrieval import (
 )
 from backend.staleness import check_staleness
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Rate limiting: sliding window of timestamps per session_id
+# Rate limiting: sliding window of timestamps per session_id (per-container)
 _rate_limits: dict[str, list[float]] = defaultdict(list)
 _RATE_LIMIT_MAX = 10
 _RATE_LIMIT_WINDOW = 60  # seconds
@@ -132,14 +141,8 @@ async def _load_session_data(
     chunks_path = base / f"{session_id}_chunks.json"
     embeddings_path = base / f"{session_id}_embeddings.npy"
 
-    import os, sys
-    print(f"[DEBUG] Looking for: {chunks_path}", file=sys.stderr)
-    print(f"[DEBUG] Base exists: {base.exists()}", file=sys.stderr)
-    if base.exists():
-        print(f"[DEBUG] Base contents: {list(base.iterdir())}", file=sys.stderr)
-    print(f"[DEBUG] /data contents: {os.listdir('/data')}", file=sys.stderr)
-
     if not chunks_path.exists() or not embeddings_path.exists():
+        logger.warning("session_data_missing user=%s session=%s path=%s", user_id, session_id, chunks_path)
         raise HTTPException(status_code=404, detail="Session data not found")
 
     with open(chunks_path) as f:
@@ -275,6 +278,7 @@ async def _chat_event_stream(
     except HTTPException:
         raise
     except Exception as e:
+        logger.exception("chat_stream_error user=%s session=%s", user_id, session_id)
         yield f'data: {json.dumps({"type": "error", "message": str(e)})}\n\n'
         yield "data: [DONE]\n\n"
 
@@ -307,8 +311,7 @@ async def chat_endpoint(
         raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again in a minute.")
     _rate_limits[session_id].append(time.time())
 
-    import sys
-    print(f"[CHAT] user={user_id} session={session_id} query={query!r}", file=sys.stderr)
+    logger.info("chat_request user=%s session=%s query=%r", user_id, session_id, query)
 
     return StreamingResponse(
         _chat_event_stream(query, user_id, session_id, file_list, token),

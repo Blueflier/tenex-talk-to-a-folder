@@ -1,14 +1,20 @@
-"""Keyword extraction and grep-based live retrieval for stale files."""
+"""Keyword extraction and grep-based live retrieval for stale files.
+
+NOTE: _grep_text_cache is in-memory and per-container. With multiple Modal
+replicas, each container maintains its own cache. Redundant fetches are safe.
+"""
 from __future__ import annotations
 
 import json
+import logging
 import re
 import time
 
-import aiohttp
+from backend.config import GREP_MAX_RESULTS, get_llm_client
+from backend.drive import EXPORT_MIME_MAP
+from backend.drive_client import DRIVE_API_BASE, drive_session
 
-from backend.config import get_llm_client
-from backend.drive import DRIVE_API_BASE, EXPORT_MIME_MAP
+logger = logging.getLogger(__name__)
 
 # Cache: file_id -> (text, fetched_at_epoch)
 _grep_text_cache: dict[str, tuple[str, float]] = {}
@@ -72,10 +78,8 @@ async def fetch_and_extract(
     else:
         url = f"{DRIVE_API_BASE}/{file_id}?alt=media"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            url, headers={"Authorization": f"Bearer {access_token}"}
-        ) as r:
+    async with drive_session(access_token) as session:
+        async with session.get(url) as r:
             r.raise_for_status()
             return await r.text()
 
@@ -98,7 +102,13 @@ async def grep_live(
         text = await fetch_and_extract(file_id, access_token, mime_type=mime_type)
         _grep_text_cache[file_id] = (text, time.time())
 
-    sentences = re.split(r"(?<=[.!?])\s+", text)
+    # Split on sentence boundaries, but not after common abbreviations.
+    # First protect abbreviations, then split, then restore.
+    _ABBREV_RE = re.compile(r"\b(Dr|Mr|Mrs|Ms|Jr|Sr|Inc|Corp|Ltd|Prof|Gen|Gov|Vol|vs|etc|approx)\.")
+    _SENTINEL = "\x00"
+    protected = _ABBREV_RE.sub(lambda m: m.group(1) + _SENTINEL, text)
+    sentences = re.split(r"(?<=[.!?])\s+", protected)
+    sentences = [s.replace(_SENTINEL, ".") for s in sentences]
     if not keywords:
         return []
 
@@ -117,7 +127,7 @@ async def grep_live(
                     "file_id": file_id,
                 }
             )
-        if len(results) >= 15:
+        if len(results) >= GREP_MAX_RESULTS:
             break
 
     return results

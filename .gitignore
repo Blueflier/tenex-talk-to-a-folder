@@ -1,3 +1,9 @@
 dev.md
+.env
+.env.local
+.env.*
 eval/cache/
 eval/data/
+client_secret*.json
+data/
+__pycache__/

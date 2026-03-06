@@ -15,45 +15,37 @@ function App() {
   const [gisReady, setGisReady] = useState(false);
 
   useEffect(() => {
-    const tryInit = () => {
-      if (window.google?.accounts?.oauth2) {
-        initAuth(
-          (newToken) => {
-            setToken(newToken);
-            setAuthError(undefined);
-            setShowReAuth(false);
-            setAuthLoading(false);
-          },
-          (err) => {
-            setAuthLoading(false);
-            if (err === "access_denied") {
-              setAuthError(
-                "You denied access to Google Drive. Drive access is required to read your files."
-              );
-            } else if (err === "popup_closed") {
-              setAuthError("Sign-in popup was closed. Please try again.");
-            } else {
-              setAuthError(`Authentication error: ${err}`);
-            }
+    const doInit = () => {
+      initAuth(
+        (newToken) => {
+          setToken(newToken);
+          setAuthError(undefined);
+          setShowReAuth(false);
+          setAuthLoading(false);
+        },
+        (err) => {
+          setAuthLoading(false);
+          if (err === "access_denied") {
+            setAuthError(
+              "You denied access to Google Drive. Drive access is required to read your files."
+            );
+          } else if (err === "popup_closed") {
+            setAuthError("Sign-in popup was closed. Please try again.");
+          } else {
+            setAuthError(`Authentication error: ${err}`);
           }
-        );
-        setGisReady(true);
-        return true;
-      }
-      return false;
+        }
+      );
+      setGisReady(true);
     };
 
-    if (!tryInit()) {
-      // GIS script may still be loading -- poll briefly
-      const interval = setInterval(() => {
-        if (tryInit()) clearInterval(interval);
-      }, 200);
-      // Stop polling after 10s
-      const timeout = setTimeout(() => clearInterval(interval), 10_000);
-      return () => {
-        clearInterval(interval);
-        clearTimeout(timeout);
-      };
+    // GIS script dispatches 'gis-loaded' event via onload in index.html
+    if (window.google?.accounts?.oauth2) {
+      doInit();
+    } else {
+      const handler = () => doInit();
+      window.addEventListener("gis-loaded", handler);
+      return () => window.removeEventListener("gis-loaded", handler);
     }
   }, []);
 

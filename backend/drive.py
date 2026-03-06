@@ -2,7 +2,7 @@
 import re
 from typing import Optional
 
-import aiohttp
+from backend.drive_client import DRIVE_API_BASE, drive_session
 
 DRIVE_FOLDER_PATTERN = re.compile(r"/folders/([-\w]+)")
 DRIVE_FILE_PATTERN = re.compile(r"/d/([-\w]+)")
@@ -34,8 +34,6 @@ SKIP_REASONS = {
     "application/zip": "ZIP archives are not supported",
     "application/x-zip": "ZIP archives are not supported",
 }
-
-DRIVE_API_BASE = "https://www.googleapis.com/drive/v3/files"
 
 
 def extract_drive_id(url: str) -> Optional[str]:
@@ -76,11 +74,10 @@ def classify_file(mime_type: str) -> dict:
 
 async def resolve_drive_link(access_token: str, drive_id: str) -> dict:
     """Get metadata for a file/folder. Returns {id, name, mimeType, size}."""
-    async with aiohttp.ClientSession() as session:
+    async with drive_session(access_token) as session:
         async with session.get(
             f"{DRIVE_API_BASE}/{drive_id}",
             params={"fields": "id,name,mimeType,size"},
-            headers={"Authorization": f"Bearer {access_token}"},
         ) as r:
             if r.status == 404:
                 raise ValueError("File or folder not found")
@@ -94,7 +91,7 @@ async def list_folder_files(access_token: str, folder_id: str) -> list[dict]:
     """List all files in a folder (non-recursive), handling pagination."""
     files = []
     page_token = None
-    async with aiohttp.ClientSession() as session:
+    async with drive_session(access_token) as session:
         while True:
             params = {
                 "q": f"'{folder_id}' in parents and trashed = false",
@@ -106,7 +103,6 @@ async def list_folder_files(access_token: str, folder_id: str) -> list[dict]:
             async with session.get(
                 DRIVE_API_BASE,
                 params=params,
-                headers={"Authorization": f"Bearer {access_token}"},
             ) as r:
                 r.raise_for_status()
                 data = await r.json()
@@ -119,8 +115,7 @@ async def list_folder_files(access_token: str, folder_id: str) -> list[dict]:
 
 async def export_file(access_token: str, file_id: str, mime_type: str) -> bytes:
     """Export a Google Workspace file or download a binary file."""
-    headers = {"Authorization": f"Bearer {access_token}"}
-    async with aiohttp.ClientSession() as session:
+    async with drive_session(access_token) as session:
         if mime_type in EXPORT_MIME_MAP:
             url = f"{DRIVE_API_BASE}/{file_id}/export"
             params = {"mimeType": EXPORT_MIME_MAP[mime_type]}
@@ -128,6 +123,6 @@ async def export_file(access_token: str, file_id: str, mime_type: str) -> bytes:
             url = f"{DRIVE_API_BASE}/{file_id}"
             params = {"alt": "media"}
 
-        async with session.get(url, params=params, headers=headers) as r:
+        async with session.get(url, params=params) as r:
             r.raise_for_status()
             return await r.read()

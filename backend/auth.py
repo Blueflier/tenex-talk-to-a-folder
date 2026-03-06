@@ -15,7 +15,7 @@ async def get_google_user_id(access_token: str) -> str:
     if os.environ.get("EVAL_MODE"):
         return "eval-user"
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session:
         async with session.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             headers={"Authorization": f"Bearer {access_token}"},

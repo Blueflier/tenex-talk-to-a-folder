@@ -1,6 +1,16 @@
-"""Model strategy config with DeepSeek default and OpenAI swap."""
+"""Central configuration for models, chunking, and embedding parameters."""
 import os
 from pathlib import Path
+
+# Chunking
+CHUNK_MAX_CHARS = 1200
+CHUNK_OVERLAP = 150
+
+# Embedding
+EMBED_BATCH_SIZE = 100
+
+# Grep
+GREP_MAX_RESULTS = 15
 
 MODEL_CONFIGS = {
     "deepseek": {

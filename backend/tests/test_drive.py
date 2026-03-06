@@ -60,7 +60,7 @@ class TestResolveDriveLink:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("drive.aiohttp.ClientSession", return_value=mock_session):
+        with patch("drive.drive_session", return_value=mock_session):
             result = await resolve_drive_link("fake-token", "abc123")
             assert result == mock_data
 
@@ -76,7 +76,7 @@ class TestResolveDriveLink:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("drive.aiohttp.ClientSession", return_value=mock_session):
+        with patch("drive.drive_session", return_value=mock_session):
             with pytest.raises(ValueError, match="not found"):
                 await resolve_drive_link("fake-token", "bad-id")
 
@@ -92,7 +92,7 @@ class TestResolveDriveLink:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("drive.aiohttp.ClientSession", return_value=mock_session):
+        with patch("drive.drive_session", return_value=mock_session):
             with pytest.raises(PermissionError, match="No access"):
                 await resolve_drive_link("fake-token", "no-access-id")
 
@@ -131,7 +131,7 @@ class TestListFolderFiles:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("drive.aiohttp.ClientSession", return_value=mock_session):
+        with patch("drive.drive_session", return_value=mock_session):
             result = await list_folder_files("fake-token", "folder-id")
             assert len(result) == 2
             assert result[0]["id"] == "f1"
@@ -157,7 +157,7 @@ class TestExportFile:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("drive.aiohttp.ClientSession", return_value=mock_session):
+        with patch("drive.drive_session", return_value=mock_session):
             result = await export_file("fake-token", "doc-id", "application/vnd.google-apps.document")
             assert result == b"doc content"
             # Verify the URL used /export
@@ -180,7 +180,7 @@ class TestExportFile:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("drive.aiohttp.ClientSession", return_value=mock_session):
+        with patch("drive.drive_session", return_value=mock_session):
             result = await export_file("fake-token", "pdf-id", "application/pdf")
             assert result == b"%PDF-1.4 content"
             call_args = mock_session.get.call_args

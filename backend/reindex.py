@@ -11,21 +11,14 @@ from openai import AsyncOpenAI
 
 from backend.config import VOLUME_PATH
 from backend.chunking import chunk_text, chunk_pdf, chunk_sheet, chunk_slides
-from backend.drive import export_file, EXPORT_MIME_MAP, SUPPORTED_MIME_TYPES
+from backend.drive import export_file, resolve_drive_link
 from backend.embedding import embed_chunks, EMBED_DIM
 from backend.staleness import invalidate_caches
-
-import aiohttp
 
 
 async def fetch_and_chunk_file(file_id: str, access_token: str) -> list[dict]:
     """Fetch file from Drive, determine type, chunk it. Returns chunk dicts with file_id."""
-    # Get file metadata to determine mime type and name
-    async with aiohttp.ClientSession() as session:
-        url = f"https://www.googleapis.com/drive/v3/files/{file_id}?fields=id,name,mimeType"
-        async with session.get(url, headers={"Authorization": f"Bearer {access_token}"}) as r:
-            r.raise_for_status()
-            meta = await r.json()
+    meta = await resolve_drive_link(access_token, file_id)
 
     mime_type = meta["mimeType"]
     file_name = meta["name"]

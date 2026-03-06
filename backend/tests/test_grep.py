@@ -149,7 +149,7 @@ async def test_fetch_and_extract_workspace_uses_export():
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=False)
 
-    with patch("backend.grep.aiohttp.ClientSession", return_value=mock_session):
+    with patch("backend.grep.drive_session", return_value=mock_session):
         result = await fetch_and_extract(
             "file123", "tok", mime_type="application/vnd.google-apps.document"
         )
@@ -176,7 +176,7 @@ async def test_fetch_and_extract_binary_uses_alt_media():
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock(return_value=False)
 
-    with patch("backend.grep.aiohttp.ClientSession", return_value=mock_session):
+    with patch("backend.grep.drive_session", return_value=mock_session):
         result = await fetch_and_extract(
             "file456", "tok", mime_type="application/pdf"
         )

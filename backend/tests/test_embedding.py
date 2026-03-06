@@ -6,7 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import numpy as np
 import pytest
 
-from embedding import embed_chunks, BATCH_SIZE, EMBED_MODEL
+from embedding import embed_chunks, EMBED_MODEL
+from backend.config import EMBED_BATCH_SIZE
 
 
 def _make_chunks(n: int) -> list[dict]:
@@ -105,6 +106,7 @@ class TestProgressCallback:
 class TestRetryLogic:
     @pytest.mark.asyncio
     async def test_retries_on_transient_error(self):
+        from openai import APIConnectionError
         client = AsyncMock()
         client.embeddings = AsyncMock()
         call_count = 0
@@ -113,7 +115,7 @@ class TestRetryLogic:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
-                raise Exception("transient error")
+                raise APIConnectionError(request=MagicMock())
             return _fake_embedding_response(kwargs["input"])
 
         client.embeddings.create = AsyncMock(side_effect=flaky_create)
@@ -124,18 +126,21 @@ class TestRetryLogic:
 
     @pytest.mark.asyncio
     async def test_raises_after_max_retries(self):
+        from openai import APIConnectionError
         client = AsyncMock()
         client.embeddings = AsyncMock()
-        client.embeddings.create = AsyncMock(side_effect=Exception("permanent failure"))
+        client.embeddings.create = AsyncMock(
+            side_effect=APIConnectionError(request=MagicMock())
+        )
         chunks = _make_chunks(5)
-        with pytest.raises(Exception, match="permanent failure"):
+        with pytest.raises(APIConnectionError):
             await embed_chunks(client, chunks, max_retries=3)
         assert client.embeddings.create.call_count == 3
 
 
 class TestConstants:
     def test_batch_size_is_100(self):
-        assert BATCH_SIZE == 100
+        assert EMBED_BATCH_SIZE == 100
 
     def test_embed_model_is_text_embedding_3_small(self):
         assert EMBED_MODEL == "text-embedding-3-small"
