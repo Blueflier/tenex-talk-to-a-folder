@@ -1,7 +1,7 @@
 """Keyword extraction and grep-based live retrieval for stale files.
 
-NOTE: _grep_text_cache is in-memory and per-container. With multiple Modal
-replicas, each container maintains its own cache. Redundant fetches are safe.
+NOTE: _grep_text_cache is in-memory and per-process. With multiple
+replicas, each process maintains its own cache. Redundant fetches are safe.
 """
 from __future__ import annotations
 

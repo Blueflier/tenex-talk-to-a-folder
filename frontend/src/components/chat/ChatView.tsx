@@ -17,7 +17,7 @@ const NO_RESULTS_TEXT =
 
 interface ChatViewProps {
   sessionId: string;
-  fileList: string[];
+  fileList: Array<{ file_id: string; file_name: string; indexed_at: string }>;
   indexedSources?: IndexedSource[];
   initialMessages?: MessageData[];
 }
@@ -61,7 +61,7 @@ export function ChatView({
 
   // Re-index hook
   const { reindex, isReindexing, isFileReindexing } = useReindex({
-    onSuccess(fileId, indexedAt) {
+    onSuccess(_fileId, _indexedAt) {
       toast.success("Re-indexed successfully", { duration: 3000 });
       // TODO: update IndexedDB indexed_sources entry with new indexed_at if needed
     },

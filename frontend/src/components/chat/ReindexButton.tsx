@@ -8,7 +8,6 @@ interface ReindexButtonProps {
 }
 
 export function ReindexButton({
-  fileId,
   isReindexing,
   onReindex,
 }: ReindexButtonProps) {

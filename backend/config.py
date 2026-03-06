@@ -27,7 +27,7 @@ MODEL_CONFIGS = {
 
 ACTIVE_MODEL = os.environ.get("ACTIVE_MODEL", "deepseek")
 
-VOLUME_PATH = Path("/data")
+VOLUME_PATH = Path(os.environ.get("DATA_DIR", "./data"))
 
 
 def get_llm_client():

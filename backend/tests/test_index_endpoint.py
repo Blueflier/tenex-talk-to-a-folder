@@ -2,23 +2,12 @@
 from __future__ import annotations
 
 import json
-import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-
-# Mock modal module before any import
-_modal_mock = MagicMock()
-_modal_mock.App.return_value = MagicMock()
-_modal_mock.Volume.from_name.return_value = MagicMock()
-_modal_mock.Image.debian_slim.return_value.pip_install.return_value = MagicMock()
-_modal_mock.Secret.from_name.return_value = MagicMock()
-_modal_mock.asgi_app.return_value = lambda f: f
-_modal_mock.function.return_value = lambda f: f
-sys.modules["modal"] = _modal_mock
 
 from backend.app import web_app
 
@@ -93,10 +82,6 @@ def _mock_embed_chunks(dim=1536):
 
 def _mock_save_session():
     return patch("backend.index.append_session")
-
-
-def _mock_volume():
-    return patch("backend.index.router", wraps=None)  # volume mock handled via app_volume
 
 
 @pytest_asyncio.fixture

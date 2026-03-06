@@ -20,7 +20,6 @@ export function buildPlaceholder(fileNames: string[]): string {
 export function ChatHeader({
   filesIndexed,
   totalChunks,
-  fileNames,
 }: ChatHeaderProps) {
   if (filesIndexed === 0) return null;
 

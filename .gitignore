@@ -7,3 +7,4 @@ eval/data/
 client_secret*.json
 data/
 __pycache__/
+.vercel

@@ -89,7 +89,7 @@ function App() {
 
   return (
     <>
-      <AppShell />
+      <AppShell token={token} />
       <ReAuthModal open={showReAuth} onReAuth={handleReAuth} />
       <Toaster position="top-center" richColors />
     </>

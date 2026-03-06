@@ -58,7 +58,6 @@ async def reindex_file(
     session_id: str,
     file_id: str,
     access_token: str,
-    volume,
     base_path: Path | None = None,
 ) -> dict:
     """Surgically replace one file's chunks in a session.
@@ -106,8 +105,6 @@ async def reindex_file(
     with open(chunks_path, "w") as f:
         json.dump(merged_chunks, f)
 
-    volume.commit()
-
     # Invalidate caches
     invalidate_caches(file_id)
 
@@ -148,14 +145,12 @@ async def reindex_endpoint(
     if not session_id or not file_id:
         raise HTTPException(status_code=400, detail="session_id and file_id required")
 
-    from backend.app import volume as app_volume
     try:
         result = await reindex_file(
             user_id=user_id,
             session_id=session_id,
             file_id=file_id,
             access_token=token,
-            volume=app_volume,
         )
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Session not found")

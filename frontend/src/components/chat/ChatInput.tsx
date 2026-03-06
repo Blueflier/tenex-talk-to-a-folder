@@ -112,7 +112,7 @@ export function ChatInput({
           className="min-h-[40px] max-h-[200px] resize-none pr-12"
           data-testid="chat-input"
         />
-        <div className="absolute right-2 bottom-2">
+        <div className="absolute right-2 bottom-1/2 translate-y-1/2">
           {isStreaming ? (
             <button
               type="button"

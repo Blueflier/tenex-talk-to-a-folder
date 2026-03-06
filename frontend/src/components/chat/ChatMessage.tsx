@@ -24,20 +24,62 @@ function renderContentWithCitations(
   content: string,
   citations: Citation[],
   onCitationClick: (index: number, anchorEl: HTMLElement) => void
-): ReactNode[] {
-  const parts = content.split(/(\[\d+\])/g);
-  return parts.map((part, i) => {
-    const match = part.match(/^\[(\d+)\]$/);
-    if (match) {
-      const idx = parseInt(match[1], 10);
-      const exists = citations.some((c) => c.index === idx);
-      if (exists) {
-        return <CitationBadge key={i} index={idx} onClick={onCitationClick} />;
+): ReactNode {
+  // Split content into text and citation tokens, but render markdown
+  // as a single block and inject citation badges inline via custom components
+  const citationIndices = new Set(citations.map((c) => c.index));
+
+  return (
+    <Markdown
+      components={{
+        p: ({ children }) => {
+          // Process children to inject citation badges inline
+          const processed = injectCitations(children, citationIndices, onCitationClick);
+          return <p>{processed}</p>;
+        },
+        li: ({ children }) => {
+          const processed = injectCitations(children, citationIndices, onCitationClick);
+          return <li>{processed}</li>;
+        },
+      }}
+    >
+      {content}
+    </Markdown>
+  );
+}
+
+function injectCitations(
+  children: ReactNode,
+  citationIndices: Set<number>,
+  onCitationClick: (index: number, anchorEl: HTMLElement) => void
+): ReactNode {
+  if (!children) return children;
+
+  const childArray = Array.isArray(children) ? children : [children];
+  const result: ReactNode[] = [];
+
+  for (let i = 0; i < childArray.length; i++) {
+    const child = childArray[i];
+    if (typeof child === "string") {
+      const parts = child.split(/(\[\d+\])/g);
+      for (let j = 0; j < parts.length; j++) {
+        const part = parts[j];
+        const match = part.match(/^\[(\d+)\]$/);
+        if (match) {
+          const idx = parseInt(match[1], 10);
+          if (citationIndices.has(idx)) {
+            result.push(<CitationBadge key={`cite-${i}-${j}`} index={idx} onClick={onCitationClick} />);
+            continue;
+          }
+        }
+        if (part) result.push(part);
       }
+    } else {
+      result.push(child);
     }
-    if (!part) return null;
-    return <Markdown key={i}>{part}</Markdown>;
-  });
+  }
+
+  return result;
 }
 
 export function ChatMessage({
@@ -59,7 +101,7 @@ export function ChatMessage({
         className={`max-w-[85%] rounded-2xl px-4 py-3 ${
           isUser
             ? "bg-zinc-200 dark:bg-zinc-700 text-foreground"
-            : "bg-white dark:bg-zinc-800 text-foreground"
+            : "bg-zinc-50 dark:bg-zinc-800 text-foreground shadow-sm border border-zinc-200 dark:border-zinc-700"
         }`}
       >
         {!isUser && staleFiles && staleFiles.length > 0 && sessionId && (

@@ -80,6 +80,10 @@ modal deploy backend/app.py
 - **IndexedDB for chat history**: Messages persist client-side, reducing backend storage costs and enabling offline viewing of past conversations.
 - **Type-specific chunking**: PDFs chunked page-by-page, sheets row-by-row with header prepended, slides split on boundaries — preserves structural context for retrieval.
 
+## Problems We Encountered
+
+- **IndexedDB on serverless**: We initially wanted to use IndexedDB for server-side storage, but ran into idempotency issues when deploying on a serverless architecture (Modal). Each container instance has its own isolated state, so there's no guarantee that consecutive requests hit the same container. This also meant we couldn't rate-limit users without a shared key-value cache across all containers serving the `/chat` endpoint. **Takeaway**: don't design for serverless constraints unless you actually need to scale that way — it introduces complexity (shared state, distributed caching) that isn't worth it for most use cases.
+
 ## Testing
 
 ```bash

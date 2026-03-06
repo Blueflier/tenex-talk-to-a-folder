@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 import numpy as np
@@ -59,7 +60,6 @@ async def _index_event_stream(
     session_id: str,
     access_token: str,
     user_id: str,
-    volume,
 ) -> AsyncGenerator[str, None]:
     """Generate SSE events for the full indexing pipeline."""
     try:
@@ -205,13 +205,15 @@ async def _index_event_stream(
 
         # 7. Storage
         if embeddings.shape[0] > 0:
-            append_session(user_id, session_id, embeddings, all_chunks, volume)
+            append_session(user_id, session_id, embeddings, all_chunks)
 
         # 8. Complete
+        indexed_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S") + "Z"
         yield _sse_event("complete", {
             "files_indexed": files_indexed,
             "total_chunks": len(all_chunks),
             "skipped_files": skipped_files,
+            "indexed_at": indexed_at,
         })
 
     except Exception as e:
@@ -234,9 +236,7 @@ async def index_endpoint(
     token = authorization.removeprefix("Bearer ").strip()
     user_id = await get_google_user_id(token)
 
-    from backend.app import volume as app_volume
-
     return StreamingResponse(
-        _index_event_stream(body.drive_url, body.session_id, token, user_id, app_volume),
+        _index_event_stream(body.drive_url, body.session_id, token, user_id),
         media_type="text/event-stream",
     )

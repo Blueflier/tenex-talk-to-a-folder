@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+aiohttp
+openai
+numpy
+pymupdf
+httpx
+pytest
+pytest-asyncio

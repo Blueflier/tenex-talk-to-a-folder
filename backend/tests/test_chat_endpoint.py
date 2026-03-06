@@ -9,20 +9,6 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-# We need to mock modal before importing app
-import sys
-from unittest.mock import MagicMock as _MagicMock
-
-# Mock modal module before any import
-_modal_mock = _MagicMock()
-_modal_mock.App.return_value = _MagicMock()
-_modal_mock.Volume.from_name.return_value = _MagicMock()
-_modal_mock.Image.debian_slim.return_value.pip_install.return_value = _MagicMock()
-_modal_mock.Secret.from_name.return_value = _MagicMock()
-_modal_mock.asgi_app.return_value = lambda f: f
-_modal_mock.function.return_value = lambda f: f
-sys.modules["modal"] = _modal_mock
-
 from backend.app import web_app
 
 

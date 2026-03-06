@@ -140,9 +140,9 @@ describe("IndexedDB persistence layer", () => {
 
       expect(loaded).toHaveLength(1);
       expect(loaded[0].citations).toHaveLength(2);
-      expect(loaded[0].citations![0].file_name).toBe("report.pdf");
-      expect(loaded[0].citations![0].page_number).toBe(7);
-      expect(loaded[0].citations![1].row_number).toBe(12);
+      expect((loaded[0].citations![0] as Record<string, unknown>).file_name).toBe("report.pdf");
+      expect((loaded[0].citations![0] as Record<string, unknown>).page_number).toBe(7);
+      expect((loaded[0].citations![1] as Record<string, unknown>).row_number).toBe(12);
     });
 
     it("loadMessages returns messages sorted by created_at ascending", async () => {

@@ -315,7 +315,8 @@ export function AppShell({ token }: AppShellProps) {
   const totalChunks = selectedSessionId
     ? totalChunksMap.get(selectedSessionId) || 0
     : 0;
-  const isIndexed = indexedFiles.length > 0;
+  const selectedChat = chats.find((c) => c.session_id === selectedSessionId);
+  const isIndexed = indexedFiles.length > 0 || (selectedChat?.indexed_sources?.length ?? 0) > 0;
   const fileNames = indexedFiles.map((f) => f.file_name);
   const fileList = indexedFiles.map((f) => ({ file_id: f.file_id, file_name: f.file_name, indexed_at: f.indexed_at }));
 

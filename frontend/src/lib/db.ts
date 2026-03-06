@@ -26,26 +26,27 @@ export function openDB(): Promise<IDBDatabase> {
     request.onupgradeneeded = () => {
       const db = request.result;
 
-      if (!db.objectStoreNames.contains("chats")) {
-        const chatsStore = db.createObjectStore("chats", {
-          keyPath: "session_id",
-        });
-        chatsStore.createIndex("last_message_at", "last_message_at", {
-          unique: false,
-        });
+      // Drop old stores on upgrade
+      for (const name of Array.from(db.objectStoreNames)) {
+        db.deleteObjectStore(name);
       }
 
-      if (!db.objectStoreNames.contains("messages")) {
-        const messagesStore = db.createObjectStore("messages", {
-          autoIncrement: true,
-        });
-        messagesStore.createIndex("session_id", "session_id", {
-          unique: false,
-        });
-        messagesStore.createIndex("created_at", "created_at", {
-          unique: false,
-        });
-      }
+      const chatsStore = db.createObjectStore("chats", {
+        keyPath: "session_id",
+      });
+      chatsStore.createIndex("last_message_at", "last_message_at", {
+        unique: false,
+      });
+
+      const messagesStore = db.createObjectStore("messages", {
+        autoIncrement: true,
+      });
+      messagesStore.createIndex("session_id", "session_id", {
+        unique: false,
+      });
+      messagesStore.createIndex("created_at", "created_at", {
+        unique: false,
+      });
     };
 
     request.onsuccess = () => resolve(request.result);

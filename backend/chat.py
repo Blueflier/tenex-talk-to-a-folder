@@ -1,10 +1,8 @@
 """/chat SSE endpoint with streaming LLM responses, hybrid retrieval, and staleness detection.
 
-NOTE: _rate_limits is in-memory and per-container. With multiple Modal replicas,
-each container enforces its own rate limit independently. This means the effective
-limit scales with replica count (N replicas = N * 10 req/min per session). For
-this app's scale this is acceptable — a shared Redis counter would be the fix if
-abuse becomes an issue.
+NOTE: _rate_limits is in-memory and per-process. With multiple replicas,
+each process enforces its own rate limit independently. A shared Redis counter
+would be the fix if abuse becomes an issue.
 """
 from __future__ import annotations
 
@@ -87,6 +85,9 @@ Answer using ONLY the sources below. Cite inline as [1], [2], etc.
 If the answer is not in the sources, say "I couldn't find that in the provided files."
 Do not guess or use outside knowledge.
 
+FORMAT: Use Markdown for readability. Use **bold** for key terms, bullet points (- ) for lists,
+and ### headings to organize longer answers. Keep answers well-structured but concise.
+
 SOURCES:
 {sources}
 
@@ -133,10 +134,6 @@ async def _load_session_data(
     user_id: str, session_id: str
 ) -> tuple[list[dict[str, Any]], np.ndarray]:
     """Load chunks and embeddings from Volume storage."""
-    from backend.app import volume as app_volume
-
-    app_volume.reload()
-
     base = VOLUME_PATH / user_id
     chunks_path = base / f"{session_id}_chunks.json"
     embeddings_path = base / f"{session_id}_embeddings.npy"

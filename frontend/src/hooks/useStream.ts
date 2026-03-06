@@ -30,7 +30,7 @@ export function useStream(callbacks: UseStreamCallbacks) {
     async (
       sessionId: string,
       query: string,
-      fileList: string[],
+      fileList: Array<{ file_id: string; file_name: string; indexed_at: string }>,
       accessToken: string
     ) => {
       // Abort any in-flight request

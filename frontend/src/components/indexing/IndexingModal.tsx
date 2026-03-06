@@ -162,22 +162,26 @@ export function IndexingModal({
               // Auto-dismiss after 1.5s
               setTimeout(() => {
                 // Collect indexed file sources from the files state
+                let indexedSources: IndexingResult["indexedSources"] = [];
                 setFiles((currentFiles) => {
-                  const indexedSources = currentFiles
+                  indexedSources = currentFiles
                     .filter((f) => f.status === "done")
                     .map((f) => ({
                       file_id: f.file_id,
                       file_name: f.file_name,
                       indexed_at: data.indexed_at,
                     }));
+                  return currentFiles;
+                });
+                // Defer onComplete to avoid setState-during-render
+                queueMicrotask(() => {
                   onCompleteRef.current({
                     filesIndexed: data.files_indexed,
                     totalChunks: data.total_chunks,
                     indexedSources,
                   });
-                  return currentFiles;
+                  reset();
                 });
-                reset();
               }, 1500);
               break;
             }

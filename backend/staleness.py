@@ -1,7 +1,7 @@
 """Staleness detection via Google Drive metadata comparison.
 
-NOTE: _staleness_cache is in-memory and per-container. With multiple Modal
-replicas, each container maintains its own cache. This is acceptable since the
+NOTE: _staleness_cache is in-memory and per-process. With multiple
+replicas, each process maintains its own cache. This is acceptable since the
 cache is a performance optimization with a short TTL, not a correctness
 requirement — redundant Drive API calls are safe, just slower.
 """
