@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from storage import save_session, load_session, VOLUME_PATH
+from storage import save_session, load_session, append_session, VOLUME_PATH
 
 
 @pytest.fixture
@@ -82,6 +82,63 @@ class TestLoadSession:
     def test_raises_file_not_found_for_missing_session(self, tmp_path):
         with pytest.raises(FileNotFoundError):
             load_session("nonexistent", "nope", base_path=tmp_path)
+
+
+class TestAppendSession:
+    def test_append_creates_files_when_none_exist(self, tmp_path, mock_volume):
+        """When no session files exist, append_session behaves like save_session."""
+        embeddings = np.random.rand(5, 1536).astype(np.float32)
+        chunks = [{"text": f"chunk {i}", "source": "a.pdf", "chunk_index": i} for i in range(5)]
+        append_session("user1", "sess1", embeddings, chunks, mock_volume, base_path=tmp_path)
+
+        loaded_emb, loaded_chunks = load_session("user1", "sess1", base_path=tmp_path)
+        np.testing.assert_array_equal(loaded_emb, embeddings)
+        assert loaded_chunks == chunks
+
+    def test_append_concatenates_embeddings(self, tmp_path, mock_volume, sample_data):
+        """When session exists, new embeddings are concatenated to existing."""
+        embeddings, chunks = sample_data  # 10 rows
+        save_session("user1", "sess1", embeddings, chunks, mock_volume, base_path=tmp_path)
+
+        new_embeddings = np.random.rand(3, 1536).astype(np.float32)
+        new_chunks = [{"text": f"new chunk {i}", "source": "b.pdf", "chunk_index": i} for i in range(3)]
+        append_session("user1", "sess1", new_embeddings, new_chunks, mock_volume, base_path=tmp_path)
+
+        loaded_emb, loaded_chunks = load_session("user1", "sess1", base_path=tmp_path)
+        assert loaded_emb.shape[0] == 13  # 10 + 3
+        np.testing.assert_array_equal(loaded_emb[:10], embeddings)
+        np.testing.assert_array_equal(loaded_emb[10:], new_embeddings)
+
+    def test_append_concatenates_chunks(self, tmp_path, mock_volume, sample_data):
+        """When session exists, new chunks are appended to existing."""
+        embeddings, chunks = sample_data
+        save_session("user1", "sess1", embeddings, chunks, mock_volume, base_path=tmp_path)
+
+        new_embeddings = np.random.rand(2, 1536).astype(np.float32)
+        new_chunks = [{"text": "appended A"}, {"text": "appended B"}]
+        append_session("user1", "sess1", new_embeddings, new_chunks, mock_volume, base_path=tmp_path)
+
+        _, loaded_chunks = load_session("user1", "sess1", base_path=tmp_path)
+        assert len(loaded_chunks) == 12  # 10 + 2
+        assert loaded_chunks[-2:] == new_chunks
+
+    def test_multiple_appends(self, tmp_path, mock_volume):
+        """Multiple appends accumulate correctly."""
+        e1 = np.random.rand(2, 1536).astype(np.float32)
+        c1 = [{"text": "a"}, {"text": "b"}]
+        append_session("user1", "sess1", e1, c1, mock_volume, base_path=tmp_path)
+
+        e2 = np.random.rand(3, 1536).astype(np.float32)
+        c2 = [{"text": "c"}, {"text": "d"}, {"text": "e"}]
+        append_session("user1", "sess1", e2, c2, mock_volume, base_path=tmp_path)
+
+        e3 = np.random.rand(1, 1536).astype(np.float32)
+        c3 = [{"text": "f"}]
+        append_session("user1", "sess1", e3, c3, mock_volume, base_path=tmp_path)
+
+        loaded_emb, loaded_chunks = load_session("user1", "sess1", base_path=tmp_path)
+        assert loaded_emb.shape[0] == 6  # 2 + 3 + 1
+        assert len(loaded_chunks) == 6
 
 
 class TestRoundTrip:

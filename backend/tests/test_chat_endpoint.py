@@ -514,6 +514,96 @@ async def test_deleted_plus_stale(client):
 
 
 @pytest.mark.asyncio
+async def test_rate_limit_returns_429_after_10_requests(client):
+    """11th request within 60s for the same session_id returns 429."""
+    chunks, embeddings = _make_chunks_and_embeddings(n=3)
+
+    # Clear any existing rate limit state
+    from backend.chat import _rate_limits
+    _rate_limits.clear()
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["ok"]), \
+         _mock_staleness():
+        # First 10 requests should succeed
+        for i in range(10):
+            resp = await client.post(
+                "/chat",
+                json={"session_id": "rate_sess", "query": f"Question {i}"},
+                headers={"Authorization": "Bearer valid_token"},
+            )
+            assert resp.status_code == 200, f"Request {i+1} should succeed"
+
+        # 11th request should be rate limited
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "rate_sess", "query": "One too many"},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+        assert resp.status_code == 429
+
+    _rate_limits.clear()
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_independent_sessions(client):
+    """Rate limits are per session_id -- different sessions don't interfere."""
+    chunks, embeddings = _make_chunks_and_embeddings(n=3)
+
+    from backend.chat import _rate_limits
+    _rate_limits.clear()
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["ok"]), \
+         _mock_staleness():
+        # 10 requests to session A
+        for i in range(10):
+            resp = await client.post(
+                "/chat",
+                json={"session_id": "sess_A", "query": f"Q {i}"},
+                headers={"Authorization": "Bearer valid_token"},
+            )
+            assert resp.status_code == 200
+
+        # Session B should still work fine
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "sess_B", "query": "Independent"},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+        assert resp.status_code == 200
+
+    _rate_limits.clear()
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_window_expires(client):
+    """After 60s window expires, requests succeed again."""
+    import time
+    from backend.chat import _rate_limits
+
+    _rate_limits.clear()
+
+    # Manually inject 10 timestamps from 61 seconds ago
+    old_time = time.time() - 61
+    _rate_limits["expired_sess"] = [old_time] * 10
+
+    chunks, embeddings = _make_chunks_and_embeddings(n=3)
+
+    with _mock_auth(), _mock_session_data(chunks, embeddings), \
+         _mock_embed_query(), _mock_stream_llm(tokens=["ok"]), \
+         _mock_staleness():
+        resp = await client.post(
+            "/chat",
+            json={"session_id": "expired_sess", "query": "Should work"},
+            headers={"Authorization": "Bearer valid_token"},
+        )
+        assert resp.status_code == 200
+
+    _rate_limits.clear()
+
+
+@pytest.mark.asyncio
 async def test_parallel_execution(client):
     """Verify asyncio.gather used for staleness + embedding (check both called)."""
     file_list = [
