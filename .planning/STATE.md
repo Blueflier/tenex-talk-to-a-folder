@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-06T01:16:41.816Z"
-last_activity: 2026-03-05 -- Completed 05-03 Duplicate detection, error toasts & rate limit
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-03-06T01:16:28Z"
+last_activity: 2026-03-06 -- Completed 04-04 Grep mime-type branching
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 18
-  completed_plans: 16
-  percent: 100
+  completed_plans: 17
+  percent: 94
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2025-03-05)
 
 **Core value:** Users get accurate, cited answers from their own Google Drive files -- every citation points to the exact file, page, and passage.
-**Current focus:** Phase 5 Multi-session + Polish in progress
+**Current focus:** Phase 04 gap closure -- grep mime-type branching
 
 ## Current Position
 
-Phase: 5 of 6 -- Multi-session + Polish
-Plan: 05-03 complete
+Phase: 4 of 6 -- Staleness + Hybrid Retrieval (gap closure)
+Plan: 04-04 complete
 Status: Executing
-Last activity: 2026-03-05 -- Completed 05-03 Duplicate detection, error toasts & rate limit
+Last activity: 2026-03-06 -- Completed 04-04 Grep mime-type branching
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Progress: [██████████] 100%
 | Phase 05-multi-session-polish P01 | 3min | 1 tasks | 6 files |
 | Phase 05-multi-session-polish P02 | 2min | 2 tasks | 5 files |
 | Phase 05-multi-session-polish P03 | 3min | 2 tasks | 5 files |
+| Phase 04-staleness-hybrid-retrieval P04 | 2min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,8 @@ Recent decisions affecting current work:
 - [Phase 05-03]: resolveDriveFileIds returns empty array on error for graceful degradation
 - [Phase 05-03]: Error code strings from useStream mapped to sonner toasts in ChatView
 - [Phase 05-03]: Rate limit cooldown uses client-side 10s timer rather than server retry-after header
+- [Phase 04-04]: Imported EXPORT_MIME_MAP from backend.drive for grep fetch_and_extract branching
+- [Phase 04-04]: mime_type as keyword-only arg with empty string default for backward compatibility
 
 ### Pending Todos
 
@@ -124,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:16:41.814Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-eval-harness/06-CONTEXT.md
+Last session: 2026-03-06T01:16:28Z
+Stopped at: Completed 04-04-PLAN.md
+Resume file: .planning/phases/04-staleness-hybrid-retrieval/04-04-SUMMARY.md
