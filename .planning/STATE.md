@@ -60,6 +60,7 @@ Progress: [██████████] 100%
 | Phase 01-foundation-auth P03 | 12min | 3 tasks | 11 files |
 | Phase 02-indexing-pipeline P04 | 16min | 4 tasks | 10 files |
 | Phase 05-multi-session-polish P01 | 3min | 1 tasks | 6 files |
+| Phase 05-multi-session-polish P02 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,10 @@ Recent decisions affecting current work:
 - [Phase 02-04]: streamIndex returns raw Response for caller-side SSE parsing
 - [Phase 05]: In-memory sliding window rate limiter using defaultdict(list) of timestamps
 - [Phase 05]: append_session delegates to load+concat+save rather than low-level file manipulation
+- [Phase 05-02]: Per-session state via Map<string, T> instead of single useState
+- [Phase 05-02]: ChatView keyed by selectedSessionId for clean remount on switch
+- [Phase 05-02]: abortRef for stream cancellation on session switch
+- [Phase 05-02]: Auto-create session on Drive link paste when none selected
 
 ### Pending Todos
 
@@ -115,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-06T00:03:12.051Z
-Stopped at: Completed 05-01-PLAN.md
-Resume file: None
+Last session: 2026-03-06T00:02:00.000Z
+Stopped at: Completed 05-02-PLAN.md
+Resume file: .planning/phases/05-multi-session-polish/05-02-SUMMARY.md

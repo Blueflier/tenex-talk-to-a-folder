@@ -51,9 +51,9 @@
 ### Frontend UI
 
 - [x] **UI-01**: Landing page with "Sign in with Google" button and privacy messaging
-- [ ] **UI-02**: Left sidebar with chat list loaded from IndexedDB, sorted by recency
-- [ ] **UI-03**: New Chat button generates UUID session_id, creates IndexedDB record
-- [ ] **UI-04**: Chat title defaults to first indexed source name, user can click to rename
+- [x] **UI-02**: Left sidebar with chat list loaded from IndexedDB, sorted by recency
+- [x] **UI-03**: New Chat button generates UUID session_id, creates IndexedDB record
+- [x] **UI-04**: Chat title defaults to first indexed source name, user can click to rename
 - [x] **UI-05**: Chat input bar with Drive link paste zone
 - [x] **UI-06**: Indexing progress: two-phase progress bars (extraction, embedding)
 - [x] **UI-07**: Citation rendering: PDF as "file.pdf, p.7", Sheet as "file.csv, row 12", Slides as "deck, slide 3"
@@ -149,9 +149,9 @@
 | CHAT-05 | Phase 4 | Complete |
 | CHAT-06 | Phase 3 | Complete |
 | UI-01 | Phase 1 | Complete |
-| UI-02 | Phase 5 | Pending |
-| UI-03 | Phase 5 | Pending |
-| UI-04 | Phase 5 | Pending |
+| UI-02 | Phase 5 | Complete |
+| UI-03 | Phase 5 | Complete |
+| UI-04 | Phase 5 | Complete |
 | UI-05 | Phase 2 | Complete |
 | UI-06 | Phase 2 | Complete |
 | UI-07 | Phase 3 | Complete |
