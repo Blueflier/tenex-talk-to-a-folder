@@ -15,6 +15,8 @@ import { ChatHeader } from "@/components/chat/ChatHeader";
 import { IndexingModal } from "@/components/indexing/IndexingModal";
 import { Sidebar } from "./Sidebar";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { DuplicateNotice } from "./DuplicateNotice";
+import { resolveDriveFileIds } from "@/lib/drive";
 
 interface IndexedFile {
   file_id: string;
@@ -49,6 +51,12 @@ export function AppShell({ token }: AppShellProps) {
   // Indexing state
   const [driveUrl, setDriveUrl] = useState("");
   const [indexingOpen, setIndexingOpen] = useState(false);
+
+  // Duplicate detection state
+  const [duplicateInfo, setDuplicateInfo] = useState<{
+    matchingChat: Chat;
+    driveUrl: string;
+  } | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -148,9 +156,10 @@ export function AppShell({ token }: AppShellProps) {
   }, [deleteTarget, selectedSessionId]);
 
   const handleDriveLink = useCallback(
-    (url: string) => {
-      // If no session selected, create one first
-      if (!selectedSessionId) {
+    async (url: string) => {
+      // Ensure a session exists
+      let currentSessionId = selectedSessionId;
+      if (!currentSessionId) {
         const id = crypto.randomUUID();
         const newChat: Chat = {
           session_id: id,
@@ -159,14 +168,53 @@ export function AppShell({ token }: AppShellProps) {
           last_message_at: new Date().toISOString(),
           indexed_sources: [],
         };
-        saveChat(newChat);
+        await saveChat(newChat);
         setChats((prev) => [newChat, ...prev]);
         setSelectedSessionId(id);
+        currentSessionId = id;
       }
+
+      // Resolve file IDs for duplicate detection
+      const resolvedIds = await resolveDriveFileIds(url, token);
+
+      if (resolvedIds.length > 0) {
+        // Check all chats for overlapping indexed_sources
+        for (const chat of chats) {
+          if (chat.indexed_sources.length === 0) continue;
+          const overlap = resolvedIds.filter((id) =>
+            chat.indexed_sources.includes(id)
+          );
+          if (overlap.length === 0) continue;
+
+          const isFullOverlap = overlap.length === resolvedIds.length;
+
+          // Same-session match
+          if (chat.session_id === currentSessionId) {
+            toast.warning("These files are already indexed in this chat", {
+              duration: 5000,
+            });
+            return;
+          }
+
+          // Different-session full match
+          if (isFullOverlap) {
+            setDuplicateInfo({ matchingChat: chat, driveUrl: url });
+            return;
+          }
+
+          // Partial overlap -- inform and proceed
+          toast("Some files overlap with another chat. Indexing all files.", {
+            duration: 5000,
+          });
+          break;
+        }
+      }
+
+      // No match or partial -- proceed with indexing
       setDriveUrl(url);
       setIndexingOpen(true);
     },
-    [selectedSessionId]
+    [selectedSessionId, token, chats]
   );
 
   const handleIndexComplete = useCallback(
@@ -273,6 +321,23 @@ export function AppShell({ token }: AppShellProps) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
+        {/* Duplicate notice */}
+        {duplicateInfo && (
+          <DuplicateNotice
+            matchingChat={duplicateInfo.matchingChat}
+            onOpenChat={() => {
+              setSelectedSessionId(duplicateInfo.matchingChat.session_id);
+              setDuplicateInfo(null);
+            }}
+            onReindexHere={() => {
+              setDriveUrl(duplicateInfo.driveUrl);
+              setIndexingOpen(true);
+              setDuplicateInfo(null);
+            }}
+            onDismiss={() => setDuplicateInfo(null)}
+          />
+        )}
+
         {selectedSessionId && isIndexed ? (
           <>
             <ChatHeader
