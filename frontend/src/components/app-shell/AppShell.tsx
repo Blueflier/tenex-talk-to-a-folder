@@ -1,33 +1,63 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { getChats, type Chat } from "@/lib/db";
+import {
+  getChats,
+  saveChat,
+  updateChatTitle,
+  deleteChat,
+  deleteMessages,
+  type Chat,
+} from "@/lib/db";
 import { FolderOpen } from "lucide-react";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatView } from "@/components/chat/ChatView";
-import { ChatHeader, buildPlaceholder } from "@/components/chat/ChatHeader";
+import { ChatHeader } from "@/components/chat/ChatHeader";
 import { IndexingModal } from "@/components/indexing/IndexingModal";
+import { Sidebar } from "./Sidebar";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 
 interface IndexedFile {
   file_id: string;
   file_name: string;
 }
 
-export function AppShell() {
+interface AppShellProps {
+  token: string;
+}
+
+export function AppShell({ token }: AppShellProps) {
   const [loading, setLoading] = useState(true);
   const [chats, setChats] = useState<Chat[]>([]);
+
+  // Multi-session state
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null
+  );
+  const [indexedFilesMap, setIndexedFilesMap] = useState<
+    Map<string, IndexedFile[]>
+  >(new Map());
+  const [totalChunksMap, setTotalChunksMap] = useState<Map<string, number>>(
+    new Map()
+  );
+
+  // Delete confirmation
+  const [deleteTarget, setDeleteTarget] = useState<Chat | null>(null);
+
+  // Stream abort ref -- set by ChatView via callback
+  const abortRef = useRef<(() => void) | null>(null);
 
   // Indexing state
   const [driveUrl, setDriveUrl] = useState("");
   const [indexingOpen, setIndexingOpen] = useState(false);
-  const [sessionId] = useState(() => crypto.randomUUID());
-  const [indexedFiles, setIndexedFiles] = useState<IndexedFile[]>([]);
-  const [totalChunks, setTotalChunks] = useState(0);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
       try {
         const loaded = await getChats();
         setChats(loaded);
+        if (loaded.length > 0) {
+          setSelectedSessionId(loaded[0].session_id);
+        }
       } catch {
         // IndexedDB may not be available, continue with empty state
       } finally {
@@ -38,19 +68,152 @@ export function AppShell() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleDriveLink = useCallback((url: string) => {
-    setDriveUrl(url);
-    setIndexingOpen(true);
+  // Session switching
+  const handleSelect = useCallback((id: string) => {
+    abortRef.current?.();
+    setSelectedSessionId(id);
   }, []);
 
-  const handleIndexComplete = useCallback(
-    (result: { filesIndexed: number; totalChunks: number; indexedSources: IndexedFile[] }) => {
-      setIndexingOpen(false);
-      setDriveUrl("");
-      setIndexedFiles(result.indexedSources);
-      setTotalChunks(result.totalChunks);
+  // New chat
+  const handleCreate = useCallback(async () => {
+    const id = crypto.randomUUID();
+    const newChat: Chat = {
+      session_id: id,
+      title: "New Chat",
+      created_at: new Date().toISOString(),
+      last_message_at: new Date().toISOString(),
+      indexed_sources: [],
+    };
+    await saveChat(newChat);
+    setChats((prev) => [newChat, ...prev]);
+    abortRef.current?.();
+    setSelectedSessionId(id);
+  }, []);
+
+  // Rename
+  const handleRename = useCallback(
+    async (id: string, newTitle: string) => {
+      await updateChatTitle(id, newTitle);
+      setChats((prev) =>
+        prev.map((c) => (c.session_id === id ? { ...c, title: newTitle } : c))
+      );
     },
     []
+  );
+
+  // Delete -- show dialog
+  const handleDeleteRequest = useCallback(
+    (id: string) => {
+      const chat = chats.find((c) => c.session_id === id);
+      if (chat) setDeleteTarget(chat);
+    },
+    [chats]
+  );
+
+  // Delete -- confirm
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget.session_id;
+
+    // Abort stream if active on this session
+    if (selectedSessionId === id) {
+      abortRef.current?.();
+    }
+
+    await deleteChat(id);
+    await deleteMessages(id);
+
+    setChats((prev) => {
+      const remaining = prev.filter((c) => c.session_id !== id);
+      // If deleted session was selected, pick first remaining or null
+      if (selectedSessionId === id) {
+        setSelectedSessionId(remaining.length > 0 ? remaining[0].session_id : null);
+      }
+      return remaining;
+    });
+
+    // Clean up maps
+    setIndexedFilesMap((prev) => {
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
+    setTotalChunksMap((prev) => {
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
+
+    setDeleteTarget(null);
+  }, [deleteTarget, selectedSessionId]);
+
+  const handleDriveLink = useCallback(
+    (url: string) => {
+      // If no session selected, create one first
+      if (!selectedSessionId) {
+        const id = crypto.randomUUID();
+        const newChat: Chat = {
+          session_id: id,
+          title: "New Chat",
+          created_at: new Date().toISOString(),
+          last_message_at: new Date().toISOString(),
+          indexed_sources: [],
+        };
+        saveChat(newChat);
+        setChats((prev) => [newChat, ...prev]);
+        setSelectedSessionId(id);
+      }
+      setDriveUrl(url);
+      setIndexingOpen(true);
+    },
+    [selectedSessionId]
+  );
+
+  const handleIndexComplete = useCallback(
+    (result: {
+      filesIndexed: number;
+      totalChunks: number;
+      indexedSources: IndexedFile[];
+    }) => {
+      setIndexingOpen(false);
+      setDriveUrl("");
+
+      if (!selectedSessionId) return;
+
+      // Update maps
+      setIndexedFilesMap((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(selectedSessionId) || [];
+        next.set(selectedSessionId, [...existing, ...result.indexedSources]);
+        return next;
+      });
+      setTotalChunksMap((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(selectedSessionId) || 0;
+        next.set(selectedSessionId, existing + result.totalChunks);
+        return next;
+      });
+
+      // Set title to first source name
+      const firstName =
+        result.indexedSources[0]?.file_name || "Untitled";
+      updateChatTitle(selectedSessionId, firstName);
+      setChats((prev) =>
+        prev.map((c) =>
+          c.session_id === selectedSessionId
+            ? {
+                ...c,
+                title: firstName,
+                indexed_sources: [
+                  ...c.indexed_sources,
+                  ...result.indexedSources.map((f) => f.file_id),
+                ],
+              }
+            : c
+        )
+      );
+    },
+    [selectedSessionId]
   );
 
   const handleIndexCancel = useCallback(() => {
@@ -64,7 +227,13 @@ export function AppShell() {
     toast.error(message);
   }, []);
 
-  const token = sessionStorage.getItem("google_access_token") ?? "";
+  // Derive per-session data
+  const indexedFiles = selectedSessionId
+    ? indexedFilesMap.get(selectedSessionId) || []
+    : [];
+  const totalChunks = selectedSessionId
+    ? totalChunksMap.get(selectedSessionId) || 0
+    : 0;
   const isIndexed = indexedFiles.length > 0;
   const fileNames = indexedFiles.map((f) => f.file_name);
   const fileList = indexedFiles.map((f) => f.file_id);
@@ -93,29 +262,18 @@ export function AppShell() {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-64 border-r bg-muted/30 p-4">
-        <h2 className="text-sm font-semibold text-muted-foreground mb-3">
-          Chat History
-        </h2>
-        {chats.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No chats yet</p>
-        ) : (
-          <ul className="space-y-1">
-            {chats.map((chat) => (
-              <li
-                key={chat.session_id}
-                className="truncate text-sm px-2 py-1 rounded hover:bg-muted cursor-pointer"
-              >
-                {chat.title}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <Sidebar
+        chats={chats}
+        selectedSessionId={selectedSessionId}
+        onSelect={handleSelect}
+        onCreate={handleCreate}
+        onRename={handleRename}
+        onDelete={handleDeleteRequest}
+      />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        {isIndexed ? (
+        {selectedSessionId && isIndexed ? (
           <>
             <ChatHeader
               filesIndexed={indexedFiles.length}
@@ -123,12 +281,15 @@ export function AppShell() {
               fileNames={fileNames}
             />
             <ChatView
-              sessionId={sessionId}
+              key={selectedSessionId}
+              sessionId={selectedSessionId}
               fileList={fileList}
-              indexedSources={[{
-                source_id: sessionId,
-                file_list: indexedFiles.map((f) => ({ name: f.file_name })),
-              }]}
+              indexedSources={[
+                {
+                  source_id: selectedSessionId,
+                  file_list: indexedFiles.map((f) => ({ name: f.file_name })),
+                },
+              ]}
             />
           </>
         ) : (
@@ -158,14 +319,24 @@ export function AppShell() {
       </div>
 
       {/* Indexing modal */}
-      <IndexingModal
-        open={indexingOpen}
-        driveUrl={driveUrl}
-        sessionId={sessionId}
-        token={token}
-        onComplete={handleIndexComplete}
-        onCancel={handleIndexCancel}
-        onError={handleIndexError}
+      {selectedSessionId && (
+        <IndexingModal
+          open={indexingOpen}
+          driveUrl={driveUrl}
+          sessionId={selectedSessionId}
+          token={token}
+          onComplete={handleIndexComplete}
+          onCancel={handleIndexCancel}
+          onError={handleIndexError}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      <DeleteConfirmDialog
+        open={deleteTarget !== null}
+        chatTitle={deleteTarget?.title || ""}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
       />
     </div>
   );
