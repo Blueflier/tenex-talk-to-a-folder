@@ -72,14 +72,19 @@ async def fetch_and_extract(
     For Google Workspace files (Docs/Sheets/Slides), uses the /export endpoint.
     For binary files (PDF, TXT, etc.), uses ?alt=media.
     """
-    if mime_type in EXPORT_MIME_MAP:
-        export_mime = EXPORT_MIME_MAP[mime_type]
-        url = f"{DRIVE_API_BASE}/{file_id}/export?mimeType={export_mime}"
-    else:
-        url = f"{DRIVE_API_BASE}/{file_id}?alt=media"
-
     async with drive_session(access_token) as session:
-        async with session.get(url) as r:
+        if mime_type in EXPORT_MIME_MAP:
+            export_mime = EXPORT_MIME_MAP[mime_type]
+            url = f"{DRIVE_API_BASE}/{file_id}/export"
+            params = {"mimeType": export_mime}
+        else:
+            url = f"{DRIVE_API_BASE}/{file_id}"
+            params = {"alt": "media"}
+
+        async with session.get(url, params=params) as r:
+            if r.status == 401:
+                logger.warning("fetch_and_extract 401 for file=%s", file_id)
+                return ""
             r.raise_for_status()
             return await r.text()
 

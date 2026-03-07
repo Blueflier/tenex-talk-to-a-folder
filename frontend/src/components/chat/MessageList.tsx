@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Citation } from "@/lib/citations";
 import type { StalenessInfo } from "./StalenessBanner";
+import type { GrepInfo } from "@/hooks/useStream";
 import { ChatMessage } from "./ChatMessage";
 
 export interface MessageData {
@@ -10,6 +11,7 @@ export interface MessageData {
   isStreaming: boolean;
   isNoResults: boolean;
   staleFiles?: StalenessInfo[];
+  grepInfo?: GrepInfo[];
 }
 
 interface MessageListProps {
@@ -38,6 +40,7 @@ export function MessageList({ messages, sessionId, onCitationClick, renderReinde
           isNoResults={msg.isNoResults}
           onCitationClick={onCitationClick}
           staleFiles={msg.staleFiles}
+          grepInfo={msg.grepInfo}
           sessionId={sessionId}
           renderReindexButton={renderReindexButton}
         />

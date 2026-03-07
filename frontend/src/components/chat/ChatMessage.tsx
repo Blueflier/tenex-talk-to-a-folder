@@ -7,6 +7,7 @@ import { StreamingCursor } from "./StreamingCursor";
 import { NoResultsMessage } from "./NoResultsMessage";
 import { StalenessBannerList } from "./StalenessBannerList";
 import type { StalenessInfo } from "./StalenessBanner";
+import type { GrepInfo } from "@/hooks/useStream";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -16,6 +17,7 @@ interface ChatMessageProps {
   isNoResults: boolean;
   onCitationClick: (index: number, anchorEl: HTMLElement) => void;
   staleFiles?: StalenessInfo[];
+  grepInfo?: GrepInfo[];
   sessionId?: string;
   renderReindexButton?: (info: StalenessInfo) => React.ReactNode;
 }
@@ -90,6 +92,7 @@ export function ChatMessage({
   isNoResults,
   onCitationClick,
   staleFiles,
+  grepInfo,
   sessionId,
   renderReindexButton,
 }: ChatMessageProps) {
@@ -107,6 +110,16 @@ export function ChatMessage({
         {!isUser && staleFiles && staleFiles.length > 0 && sessionId && (
           <StalenessBannerList staleFiles={staleFiles} sessionId={sessionId} renderReindexButton={renderReindexButton} />
         )}
+        {!isUser && grepInfo && grepInfo.length > 0 && (
+          <div className="flex items-start gap-2 rounded-lg border bg-blue-50 border-blue-200 text-blue-800 px-3 py-2 text-sm mb-2">
+            <svg className="h-4 w-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>
+              Live searched {grepInfo.map((g) => (
+                <span key={g.file_id}><span className="font-medium">{g.file_name}</span> ({g.matches} match{g.matches !== 1 ? "es" : ""})</span>
+              )).reduce<React.ReactNode[]>((acc, el, i) => i === 0 ? [el] : [...acc, ", ", el], [])}
+            </span>
+          </div>
+        )}
         {isNoResults ? (
           <NoResultsMessage />
         ) : (
@@ -123,7 +136,7 @@ export function ChatMessage({
         )}
 
         {!isStreaming && !isNoResults && citations.length > 0 && (
-          <CitationFooter citations={citations} />
+          <CitationFooter citations={citations} content={content} />
         )}
       </div>
     </div>

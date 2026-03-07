@@ -26,9 +26,10 @@ interface IndexedFile {
 
 interface AppShellProps {
   token: string;
+  onSignOut: () => void;
 }
 
-export function AppShell({ token }: AppShellProps) {
+export function AppShell({ token, onSignOut }: AppShellProps) {
   const [loading, setLoading] = useState(true);
   const [chats, setChats] = useState<Chat[]>([]);
 
@@ -231,9 +232,12 @@ export function AppShell({ token }: AppShellProps) {
       filesIndexed: number;
       totalChunks: number;
       indexedSources: IndexedFile[];
+      folderId?: string;
     }) => {
       setIndexingOpen(false);
       setDriveUrl("");
+
+      console.log("[handleIndexComplete]", { selectedSessionId, result: JSON.stringify(result) });
 
       if (!selectedSessionId) return;
 
@@ -275,6 +279,7 @@ export function AppShell({ token }: AppShellProps) {
             title: firstName,
             indexed_sources: [...c.indexed_sources, ...dedupedNewIds],
             indexed_files: mergedFiles,
+            folder_id: result.folderId || c.folder_id,
           };
           // Persist updated chat with indexed_files to IndexedDB
           saveChat(updatedChat);
@@ -351,6 +356,7 @@ export function AppShell({ token }: AppShellProps) {
         onCreate={handleCreate}
         onRename={handleRename}
         onDelete={handleDeleteRequest}
+        onSignOut={onSignOut}
       />
 
       {/* Main content */}
@@ -383,12 +389,34 @@ export function AppShell({ token }: AppShellProps) {
               key={selectedSessionId}
               sessionId={selectedSessionId}
               fileList={fileList}
+              folderId={selectedChat?.folder_id}
               indexedSources={[
                 {
                   source_id: selectedSessionId,
                   file_list: indexedFiles.map((f) => ({ name: f.file_name })),
                 },
               ]}
+              onReindexFolder={
+                selectedChat?.folder_id
+                  ? () => {
+                      setDriveUrl(`https://drive.google.com/drive/folders/${selectedChat.folder_id}`);
+                      setIndexingOpen(true);
+                    }
+                  : undefined
+              }
+              onFileReindexed={(fileId, indexedAt) => {
+                setIndexedFilesMap((prev) => {
+                  const next = new Map(prev);
+                  const files = next.get(selectedSessionId) || [];
+                  next.set(
+                    selectedSessionId,
+                    files.map((f) =>
+                      f.file_id === fileId ? { ...f, indexed_at: indexedAt } : f
+                    )
+                  );
+                  return next;
+                });
+              }}
             />
           </>
         ) : (

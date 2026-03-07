@@ -6,6 +6,9 @@
 app = 'tenex-talk-to-a-folder'
 primary_region = 'sjc'
 
+[env]
+  DATA_DIR = '/data'
+
 [build]
 
 [[mounts]]

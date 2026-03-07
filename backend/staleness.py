@@ -26,14 +26,14 @@ def _parse_iso(ts: str) -> datetime:
 
 # Cache: file_id -> (is_stale, error_or_None, checked_at_epoch)
 _staleness_cache: dict[str, tuple[bool, str | None, float]] = {}
-STALENESS_TTL = 60
+STALENESS_TTL = 10
 
 
 async def get_file_metadata(
     session, file_id: str,
 ) -> dict:
     """Fetch Drive file metadata. Returns error dict on 404/403."""
-    url = f"{DRIVE_API_BASE}/{file_id}?fields=id,name,modifiedTime"
+    url = f"{DRIVE_API_BASE}/{file_id}?fields=id,name,mimeType,modifiedTime"
     async with session.get(url) as r:
         if r.status == 404:
             return {"file_id": file_id, "error": "not_found"}
@@ -44,15 +44,18 @@ async def get_file_metadata(
 
 async def check_staleness(
     file_list: list[dict], access_token: str
-) -> tuple[set[str], dict[str, str]]:
+) -> tuple[set[str], dict[str, str], dict[str, str]]:
     """Check which files are stale by comparing Drive modifiedTime to indexed_at.
 
-    Returns (stale_ids, file_errors) where file_errors maps file_id to error type.
+    Returns (stale_ids, file_errors, mime_types) where:
+        - file_errors maps file_id to error type
+        - mime_types maps file_id to Drive mimeType
     Uses in-memory cache with STALENESS_TTL second TTL.
     """
     now = time.time()
     stale_ids: set[str] = set()
     file_errors: dict[str, str] = {}
+    mime_types: dict[str, str] = {}
 
     # Separate cached vs uncached files
     uncached_files = []
@@ -69,7 +72,7 @@ async def check_staleness(
             uncached_files.append(f)
 
     if not uncached_files:
-        return stale_ids, file_errors
+        return stale_ids, file_errors, mime_types
 
     # Fetch metadata for uncached files
     async with drive_session(access_token) as session:
@@ -82,19 +85,24 @@ async def check_staleness(
     now = time.time()
     for f, meta in zip(uncached_files, results):
         fid = f["file_id"]
+        logger.info("staleness_compare file=%s drive_modified=%s indexed_at=%s",
+                     fid, meta.get("modifiedTime"), f.get("indexed_at"))
         if "error" in meta:
             stale_ids.add(fid)
             file_errors[fid] = meta["error"]
             _staleness_cache[fid] = (True, meta["error"], now)
             logger.info("staleness_check file_id=%s error=%s", fid, meta["error"])
-        elif _parse_iso(meta["modifiedTime"]) > _parse_iso(f["indexed_at"]):
-            stale_ids.add(fid)
-            _staleness_cache[fid] = (True, None, now)
-            logger.info("staleness_check file_id=%s stale=true", fid)
         else:
-            _staleness_cache[fid] = (False, None, now)
+            if meta.get("mimeType"):
+                mime_types[fid] = meta["mimeType"]
+            if _parse_iso(meta["modifiedTime"]) > _parse_iso(f["indexed_at"]):
+                stale_ids.add(fid)
+                _staleness_cache[fid] = (True, None, now)
+                logger.info("staleness_check file_id=%s stale=true", fid)
+            else:
+                _staleness_cache[fid] = (False, None, now)
 
-    return stale_ids, file_errors
+    return stale_ids, file_errors, mime_types
 
 
 def invalidate_caches(file_id: str) -> None:

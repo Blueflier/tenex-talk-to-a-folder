@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import type { Chat } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { SidebarItem } from "./SidebarItem";
@@ -10,6 +10,7 @@ interface SidebarProps {
   onCreate: () => void;
   onRename: (id: string, title: string) => void;
   onDelete: (id: string) => void;
+  onSignOut: () => void;
 }
 
 export function Sidebar({
@@ -19,6 +20,7 @@ export function Sidebar({
   onCreate,
   onRename,
   onDelete,
+  onSignOut,
 }: SidebarProps) {
   return (
     <div className="w-64 border-r bg-muted/30 p-4 flex flex-col">
@@ -55,6 +57,16 @@ export function Sidebar({
           ))}
         </ul>
       )}
+
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mt-auto gap-2 text-muted-foreground hover:text-foreground"
+        onClick={onSignOut}
+      >
+        <LogOut className="h-4 w-4" />
+        Sign out
+      </Button>
     </div>
   );
 }

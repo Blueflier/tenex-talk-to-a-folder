@@ -4,10 +4,23 @@ import type { StalenessInfo } from "@/components/chat/StalenessBanner";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
+export interface GrepInfo {
+  file_id: string;
+  file_name: string;
+  matches: number;
+}
+
+export interface NewFileInfo {
+  file_id: string;
+  file_name: string;
+}
+
 export interface UseStreamCallbacks {
   onToken: (content: string) => void;
   onCitations: (citations: Citation[]) => void;
   onStaleness?: (files: StalenessInfo[]) => void;
+  onGrepInfo?: (files: GrepInfo[]) => void;
+  onNewFiles?: (files: NewFileInfo[]) => void;
   onNoResults: () => void;
   onError: (message: string) => void;
   onDone: () => void;
@@ -31,7 +44,9 @@ export function useStream(callbacks: UseStreamCallbacks) {
       sessionId: string,
       query: string,
       fileList: Array<{ file_id: string; file_name: string; indexed_at: string }>,
-      accessToken: string
+      accessToken: string,
+      previousResponse?: string,
+      folderId?: string
     ) => {
       // Abort any in-flight request
       abortControllerRef.current?.abort();
@@ -52,6 +67,8 @@ export function useStream(callbacks: UseStreamCallbacks) {
             session_id: sessionId,
             query,
             file_list: fileList,
+            previous_response: previousResponse || undefined,
+            folder_id: folderId || undefined,
           }),
           signal: controller.signal,
         });
@@ -103,7 +120,7 @@ export function useStream(callbacks: UseStreamCallbacks) {
                 type: string;
                 content?: string;
                 citations?: Citation[];
-                files?: StalenessInfo[];
+                files?: StalenessInfo[] | GrepInfo[];
                 message?: string;
               };
 
@@ -117,8 +134,18 @@ export function useStream(callbacks: UseStreamCallbacks) {
                   break;
                 case "staleness":
                   if (event.files) {
-                    currentStaleFilesRef.current = event.files;
-                    callbacksRef.current.onStaleness?.(event.files);
+                    currentStaleFilesRef.current = event.files as StalenessInfo[];
+                    callbacksRef.current.onStaleness?.(event.files as StalenessInfo[]);
+                  }
+                  break;
+                case "grep_info":
+                  if (event.files) {
+                    callbacksRef.current.onGrepInfo?.(event.files as GrepInfo[]);
+                  }
+                  break;
+                case "new_files":
+                  if (event.files) {
+                    callbacksRef.current.onNewFiles?.(event.files as NewFileInfo[]);
                   }
                   break;
                 case "no_results":

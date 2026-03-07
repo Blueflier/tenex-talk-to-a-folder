@@ -1,4 +1,11 @@
 """FastAPI app with CORS and health endpoint."""
+import logging
+
+from dotenv import load_dotenv
+
+load_dotenv()
+logging.basicConfig(level=logging.INFO)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,7 +21,7 @@ web_app.include_router(reindex_router)
 
 web_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://tenex-talk-to-a-folder.fly.dev"],
+    allow_origins=["http://localhost:5173", "https://tenex-talk-to-a-folder.vercel.app", "https://tenex-talk-to-a-folder.fly.dev"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

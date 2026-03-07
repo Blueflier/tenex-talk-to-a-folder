@@ -18,15 +18,21 @@ const NO_RESULTS_TEXT =
 interface ChatViewProps {
   sessionId: string;
   fileList: Array<{ file_id: string; file_name: string; indexed_at: string }>;
+  folderId?: string;
   indexedSources?: IndexedSource[];
   initialMessages?: MessageData[];
+  onFileReindexed?: (fileId: string, indexedAt: string) => void;
+  onReindexFolder?: () => void;
 }
 
 export function ChatView({
   sessionId,
   fileList,
+  folderId,
   indexedSources = [],
   initialMessages = [],
+  onFileReindexed,
+  onReindexFolder,
 }: ChatViewProps) {
   const [prefill, setPrefill] = useState("");
   const [messages, setMessages] = useState<MessageData[]>(initialMessages);
@@ -37,7 +43,8 @@ export function ChatView({
     anchorEl: HTMLElement;
   } | null>(null);
 
-  // Track current streaming message citations and stale files
+  // Track current streaming message content, citations, and stale files
+  const pendingContentRef = useRef("");
   const pendingCitationsRef = useRef<Citation[]>([]);
   const pendingStaleFilesRef = useRef<StalenessInfo[]>([]);
 
@@ -61,9 +68,22 @@ export function ChatView({
 
   // Re-index hook
   const { reindex, isReindexing, isFileReindexing } = useReindex({
-    onSuccess(_fileId, _indexedAt) {
-      toast.success("Re-indexed successfully", { duration: 3000 });
-      // TODO: update IndexedDB indexed_sources entry with new indexed_at if needed
+    onSuccess(fileId, indexedAt) {
+      // Find the file name from stale files in messages
+      const fileName = messages
+        .flatMap((m) => m.staleFiles ?? [])
+        .find((f) => f.file_id === fileId)?.file_name;
+      toast.success(`Re-indexed ${fileName || "file"} successfully`, { duration: 3000 });
+      // Remove reindexed file from staleness banners
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (!m.staleFiles?.length) return m;
+          const filtered = m.staleFiles.filter((f) => f.file_id !== fileId);
+          return { ...m, staleFiles: filtered };
+        })
+      );
+      // Update indexed_at so next staleness check uses new timestamp
+      onFileReindexed?.(fileId, indexedAt);
     },
     onError(error) {
       toast.error(`Re-index failed: ${error}`, { duration: 5000 });
@@ -72,6 +92,7 @@ export function ChatView({
 
   const { sendMessage, isStreaming, abort } = useStream({
     onToken(content) {
+      pendingContentRef.current += content;
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.isStreaming) {
@@ -99,6 +120,27 @@ export function ChatView({
         const last = prev[prev.length - 1];
         if (last?.role === "assistant") {
           return [...prev.slice(0, -1), { ...last, staleFiles: files }];
+        }
+        return prev;
+      });
+    },
+    onNewFiles(files) {
+      const names = files.map((f) => f.file_name).join(", ");
+      toast.info(
+        `${files.length} new file${files.length > 1 ? "s" : ""} in folder: ${names}`,
+        {
+          duration: 10000,
+          action: onReindexFolder
+            ? { label: "Re-index folder", onClick: onReindexFolder }
+            : undefined,
+        }
+      );
+    },
+    onGrepInfo(files) {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          return [...prev.slice(0, -1), { ...last, grepInfo: files }];
         }
         return prev;
       });
@@ -162,24 +204,25 @@ export function ChatView({
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.isStreaming) {
-          const finalMsg = { ...last, isStreaming: false };
-
-          // Persist assistant message with frozen citations and stale files
-          saveMessage({
-            session_id: sessionId,
-            role: "assistant",
-            content: finalMsg.content,
-            citations: pendingCitationsRef.current,
-            stale_files: pendingStaleFilesRef.current.length > 0
-              ? pendingStaleFilesRef.current
-              : undefined,
-            created_at: new Date().toISOString(),
-          });
-
-          return [...prev.slice(0, -1), finalMsg];
+          return [...prev.slice(0, -1), { ...last, isStreaming: false }];
         }
         return prev;
       });
+
+      // Persist using ref — safe from StrictMode double-invocation
+      const content = pendingContentRef.current;
+      if (content) {
+        saveMessage({
+          session_id: sessionId,
+          role: "assistant",
+          content,
+          citations: pendingCitationsRef.current,
+          stale_files: pendingStaleFilesRef.current.length > 0
+            ? pendingStaleFilesRef.current
+            : undefined,
+          created_at: new Date().toISOString(),
+        });
+      }
     },
   });
 
@@ -220,12 +263,15 @@ export function ChatView({
         isNoResults: false,
       };
 
+      pendingContentRef.current = "";
       pendingCitationsRef.current = [];
       pendingStaleFilesRef.current = [];
+      // Get the last assistant message for conversation context
+      const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant" && m.content);
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
-      sendMessage(sessionId, query, fileList, token);
+      sendMessage(sessionId, query, fileList, token, lastAssistant?.content, folderId);
     },
-    [sessionId, fileList, sendMessage]
+    [sessionId, fileList, folderId, sendMessage, messages]
   );
 
   const handleReindex = useCallback(

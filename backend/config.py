@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 
 # Chunking
-CHUNK_MAX_CHARS = 1200
-CHUNK_OVERLAP = 150
+CHUNK_MAX_CHARS = 250
+CHUNK_OVERLAP = 30
 
 # Embedding
 EMBED_BATCH_SIZE = 100

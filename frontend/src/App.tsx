@@ -89,7 +89,10 @@ function App() {
 
   return (
     <>
-      <AppShell token={token} />
+      <AppShell token={token} onSignOut={() => {
+        sessionStorage.removeItem("google_access_token");
+        setToken(null);
+      }} />
       <ReAuthModal open={showReAuth} onReAuth={handleReAuth} />
       <Toaster position="top-center" richColors />
     </>

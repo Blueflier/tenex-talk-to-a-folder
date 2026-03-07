@@ -20,6 +20,7 @@ interface IndexingResult {
   filesIndexed: number;
   totalChunks: number;
   indexedSources: Array<{ file_id: string; file_name: string; indexed_at: string }>;
+  folderId?: string;
 }
 
 interface IndexingModalProps {
@@ -143,6 +144,7 @@ export function IndexingModal({
                 files_indexed: number;
                 total_chunks: number;
                 indexed_at: string;
+                folder_id?: string;
                 skipped_files?: Array<{
                   file_id: string;
                   file_name: string;
@@ -179,6 +181,7 @@ export function IndexingModal({
                     filesIndexed: data.files_indexed,
                     totalChunks: data.total_chunks,
                     indexedSources,
+                    folderId: data.folder_id,
                   });
                   reset();
                 });

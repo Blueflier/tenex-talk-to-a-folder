@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from typing import AsyncGenerator
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 from fastapi import APIRouter, Header, HTTPException
@@ -73,7 +76,9 @@ async def _index_event_stream(
         meta = await resolve_drive_link(access_token, drive_id)
 
         # 3. Build file list
+        folder_id = None
         if meta.get("mimeType") == FOLDER_MIME:
+            folder_id = drive_id
             files = await list_folder_files(access_token, drive_id)
             # Empty folder check
             if not files:
@@ -195,9 +200,13 @@ async def _index_event_stream(
 
         try:
             embeddings = await embed_chunks(client, all_chunks, on_progress=_progress_callback)
-        except Exception:
-            # Save what we have (nothing embedded if it failed on first batch)
-            embeddings = np.empty((0, 1536), dtype=np.float32)
+        except Exception as embed_err:
+            logger.exception("embedding_failed user=%s session=%s", user_id, session_id)
+            # Emit progress events collected before the failure
+            for pe in progress_events:
+                yield _sse_event("embedding_progress", pe)
+            yield _sse_event("error", {"message": f"Embedding failed: {embed_err}"})
+            return
 
         # Emit progress events that were collected
         for pe in progress_events:
@@ -206,15 +215,21 @@ async def _index_event_stream(
         # 7. Storage
         if embeddings.shape[0] > 0:
             append_session(user_id, session_id, embeddings, all_chunks)
+        else:
+            yield _sse_event("error", {"message": "No embeddings were generated"})
+            return
 
         # 8. Complete
         indexed_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S") + "Z"
-        yield _sse_event("complete", {
+        complete_data = {
             "files_indexed": files_indexed,
             "total_chunks": len(all_chunks),
             "skipped_files": skipped_files,
             "indexed_at": indexed_at,
-        })
+        }
+        if folder_id:
+            complete_data["folder_id"] = folder_id
+        yield _sse_event("complete", complete_data)
 
     except Exception as e:
         yield _sse_event("error", {"message": str(e)})

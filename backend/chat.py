@@ -20,6 +20,7 @@ from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
 
 from backend.auth import get_google_user_id
+from backend.drive import list_folder_files
 from backend.config import VOLUME_PATH, get_llm_client
 from backend.grep import extract_keywords, grep_live
 from backend.retrieval import (
@@ -63,6 +64,12 @@ def build_prompt(
     sources_parts = []
     idx = 1
 
+    # Grep (live search) results first — most up-to-date content
+    for g in grep_results or []:
+        sources_parts.append(f"[{idx}] {g.get('file_name', g['file_id'])} (live search — freshest content)\n{g['text']}")
+        logger.info("prompt_grep_source [%d] keyword=%s text=%s", idx, g.get("matched_keyword"), g["text"][:200])
+        idx += 1
+
     for c, _ in retrieved_chunks:
         header = f"[{idx}] {c['file_name']}"
         if c.get("page_number"):
@@ -74,14 +81,11 @@ def build_prompt(
         sources_parts.append(f"{header}\n{c['text']}")
         idx += 1
 
-    for g in grep_results or []:
-        sources_parts.append(f"[{idx}] {g.get('file_name', g['file_id'])} (live search)\n{g['text']}")
-        idx += 1
-
     sources = "\n\n".join(sources_parts)
 
     return f"""You are an assistant answering questions about a user's Google Drive files.
 Answer using ONLY the sources below. Cite inline as [1], [2], etc.
+Sources marked "(live search)" contain the latest content from recently modified files — prioritize these.
 If the answer is not in the sources, say "I couldn't find that in the provided files."
 Do not guess or use outside knowledge.
 
@@ -99,14 +103,20 @@ async def stream_llm(
     retrieved_chunks: list[tuple[dict[str, Any], float]],
     grep_results: list[dict[str, Any]] | None = None,
     model_key: str = "deepseek",
+    previous_response: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """Stream LLM response token-by-token."""
     client, model_name = get_llm_client()
     prompt = build_prompt(query, retrieved_chunks, grep_results)
 
+    messages: list[dict[str, str]] = []
+    if previous_response:
+        messages.append({"role": "assistant", "content": previous_response})
+    messages.append({"role": "user", "content": prompt})
+
     response = await client.chat.completions.create(
         model=model_name,
-        messages=[{"role": "user", "content": prompt}],
+        messages=messages,
         stream=True,
         max_tokens=2000,
         temperature=0.1,
@@ -153,23 +163,27 @@ async def _chat_event_stream(
     query: str,
     user_id: str,
     session_id: str,
+    chunks: list[dict[str, Any]],
+    embeddings: np.ndarray,
     file_list: list[dict[str, Any]] | None = None,
     access_token: str = "",
+    previous_response: str | None = None,
+    folder_id: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """Generate SSE events for a chat query with hybrid retrieval."""
     try:
-        # Load session data
-        chunks, embeddings = await _load_session_data(user_id, session_id)
 
         # Run staleness check and query embedding in parallel
         if file_list:
+            logger.info("staleness_check starting for %d files", len(file_list))
             staleness_result, query_embedding = await asyncio.gather(
                 check_staleness(file_list, access_token),
                 _embed_query(query),
             )
-            stale_ids, file_errors = staleness_result
+            stale_ids, file_errors, mime_types = staleness_result
+            logger.info("staleness_check result stale_ids=%s errors=%s", stale_ids, file_errors)
         else:
-            stale_ids, file_errors = set(), {}
+            stale_ids, file_errors, mime_types = set(), {}, {}
             query_embedding = await _embed_query(query)
 
         # Emit staleness SSE event BEFORE any tokens
@@ -184,6 +198,21 @@ async def _chat_event_stream(
                 if f["file_id"] in stale_ids
             ]
             yield f'data: {json.dumps({"type": "staleness", "files": stale_file_info})}\n\n'
+
+        # Check for new files added to folder since indexing
+        if folder_id and file_list and access_token:
+            try:
+                indexed_ids = {f["file_id"] for f in file_list}
+                current_files = await list_folder_files(access_token, folder_id)
+                new_files = [
+                    {"file_id": f["id"], "file_name": f.get("name", "Unknown")}
+                    for f in current_files
+                    if f["id"] not in indexed_ids
+                ]
+                if new_files:
+                    yield f'data: {json.dumps({"type": "new_files", "files": new_files})}\n\n'
+            except Exception:
+                logger.warning("new_file_check failed for folder=%s", folder_id, exc_info=True)
 
         # Three-way partition per CONTEXT.md:
         # deleted_ids: 404 files -> still use cosine (old embeddings valid)
@@ -216,19 +245,28 @@ async def _chat_event_stream(
         all_grep_results: list[dict[str, Any]] = []
         if grep_ids and file_list:
             keywords = await extract_keywords(query)
-            mime_map = {f["file_id"]: f.get("mimeType", "") for f in file_list}
+            logger.info("grep_path grep_ids=%s keywords=%s mime_types=%s", grep_ids, keywords, {fid: mime_types.get(fid, "") for fid in grep_ids})
             grep_tasks = [
-                grep_live(fid, keywords, access_token, mime_type=mime_map.get(fid, ""))
+                grep_live(fid, keywords, access_token, mime_type=mime_types.get(fid, ""))
                 for fid in grep_ids
             ]
             grep_results_list = await asyncio.gather(*grep_tasks)
+            file_name_map = {f["file_id"]: f["file_name"] for f in file_list}
+            grep_summary = []
             for fid, results in zip(grep_ids, grep_results_list):
-                # Attach file_name for prompt formatting
-                file_name_map = {f["file_id"]: f["file_name"] for f in file_list}
+                logger.info("grep_results file=%s matches=%d", fid, len(results))
                 for r in results:
                     r["file_name"] = file_name_map.get(r["file_id"], r["file_id"])
                     r["source"] = "grep"
                 all_grep_results.extend(results)
+                grep_summary.append({
+                    "file_id": fid,
+                    "file_name": file_name_map.get(fid, fid),
+                    "matches": len(results),
+                })
+            yield f'data: {json.dumps({"type": "grep_info", "files": grep_summary})}\n\n'
+        else:
+            logger.info("grep_path skipped grep_ids=%s file_list_len=%d", grep_ids, len(file_list) if file_list else 0)
 
         # Check if we have any results at all
         if not retrieved and not all_grep_results:
@@ -246,7 +284,7 @@ async def _chat_event_stream(
             return
 
         # Stream LLM response
-        async for token in stream_llm(query, retrieved, all_grep_results):
+        async for token in stream_llm(query, retrieved, all_grep_results, previous_response=previous_response):
             yield f'data: {json.dumps({"type": "token", "content": token})}\n\n'
 
         # Emit citations after stream completes
@@ -300,6 +338,8 @@ async def chat_endpoint(
     session_id = body.get("session_id")
     query = body.get("query")
     file_list = body.get("file_list")  # [{file_id, file_name, indexed_at}, ...]
+    previous_response = body.get("previous_response")  # last assistant message for context
+    folder_id = body.get("folder_id")  # Drive folder ID for new-file detection
 
     if not session_id or not query:
         raise HTTPException(status_code=400, detail="session_id and query required")
@@ -308,9 +348,12 @@ async def chat_endpoint(
         raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again in a minute.")
     _rate_limits[session_id].append(time.time())
 
-    logger.info("chat_request user=%s session=%s query=%r", user_id, session_id, query)
+    logger.info("chat_request user=%s session=%s query=%r file_list=%s", user_id, session_id, query, file_list)
+
+    # Load session data BEFORE starting the stream so 404 is raised properly
+    chunks, embeddings = await _load_session_data(user_id, session_id)
 
     return StreamingResponse(
-        _chat_event_stream(query, user_id, session_id, file_list, token),
+        _chat_event_stream(query, user_id, session_id, chunks, embeddings, file_list, token, previous_response, folder_id),
         media_type="text/event-stream",
     )
