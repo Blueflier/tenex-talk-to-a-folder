@@ -6,6 +6,7 @@ import { CitationFooter } from "./CitationFooter";
 import { StreamingCursor } from "./StreamingCursor";
 import { NoResultsMessage } from "./NoResultsMessage";
 import { StalenessBannerList } from "./StalenessBannerList";
+import { RetrievedChunks } from "./RetrievedChunks";
 import type { StalenessInfo } from "./StalenessBanner";
 import type { GrepInfo } from "@/hooks/useStream";
 
@@ -137,6 +138,9 @@ export function ChatMessage({
 
         {!isStreaming && !isNoResults && citations.length > 0 && (
           <CitationFooter citations={citations} content={content} />
+        )}
+        {!isStreaming && !isNoResults && citations.length > 0 && (
+          <RetrievedChunks citations={citations} />
         )}
       </div>
     </div>

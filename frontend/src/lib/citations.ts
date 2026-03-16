@@ -6,6 +6,7 @@ export interface Citation {
   row_number?: number;
   slide_index?: number;
   chunk_text: string;
+  source?: string;
 }
 
 export function formatCitationLabel(c: Citation): string {

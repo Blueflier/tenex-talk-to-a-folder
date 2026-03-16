@@ -200,19 +200,28 @@ async def _chat_event_stream(
             yield f'data: {json.dumps({"type": "staleness", "files": stale_file_info})}\n\n'
 
         # Check for new files added to folder since indexing
+        logger.info("new_file_check folder_id=%s file_list_len=%d has_token=%s",
+                     folder_id, len(file_list) if file_list else 0, bool(access_token))
         if folder_id and file_list and access_token:
             try:
                 indexed_ids = {f["file_id"] for f in file_list}
+                logger.info("new_file_check indexed_ids=%s", indexed_ids)
                 current_files = await list_folder_files(access_token, folder_id)
+                logger.info("new_file_check current_files=%d ids=%s",
+                            len(current_files), [f["id"] for f in current_files])
                 new_files = [
                     {"file_id": f["id"], "file_name": f.get("name", "Unknown")}
                     for f in current_files
                     if f["id"] not in indexed_ids
                 ]
+                logger.info("new_file_check new_files=%s", new_files)
                 if new_files:
                     yield f'data: {json.dumps({"type": "new_files", "files": new_files})}\n\n'
             except Exception:
                 logger.warning("new_file_check failed for folder=%s", folder_id, exc_info=True)
+        else:
+            logger.info("new_file_check SKIPPED: folder_id=%s file_list=%s token=%s",
+                         folder_id, bool(file_list), bool(access_token))
 
         # Three-way partition per CONTEXT.md:
         # deleted_ids: 404 files -> still use cosine (old embeddings valid)
@@ -277,8 +286,22 @@ async def _chat_event_stream(
         # Check threshold only if no grep results to supplement
         # Skip threshold for broad queries (summarize, overview, etc.)
         _broad_keywords = {"summarize", "summary", "overview", "explain", "describe", "tell me about", "what is"}
+        _meta_keywords = {"what files", "list files", "list the files", "which files", "show files", "how many files"}
         is_broad = any(kw in query.lower() for kw in _broad_keywords)
-        if not is_broad and not all_grep_results and check_threshold(retrieved):
+        is_meta = any(kw in query.lower() for kw in _meta_keywords)
+
+        # For metadata queries ("what files are indexed?"), inject file list as a source
+        if is_meta and file_list:
+            file_names = [f["file_name"] for f in file_list]
+            meta_chunk = {
+                "text": f"Indexed files: {', '.join(file_names)}",
+                "source": "file_list",
+                "file_id": "metadata",
+                "file_name": "File Index",
+            }
+            retrieved.insert(0, (meta_chunk, 1.0))
+
+        if not is_broad and not is_meta and not all_grep_results and check_threshold(retrieved):
             yield f'data: {json.dumps({"type": "no_results"})}\n\n'
             yield "data: [DONE]\n\n"
             return

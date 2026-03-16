@@ -241,16 +241,18 @@ export function AppShell({ token, onSignOut }: AppShellProps) {
 
       if (!selectedSessionId) return;
 
-      // Update maps with dedup
-      let mergedFiles: IndexedFile[] = [];
+      // Compute mergedFiles synchronously BEFORE any state setters
+      // (state setter callbacks run asynchronously, so capturing a `let`
+      // from inside one is a race condition)
+      const existingFiles = indexedFilesMap.get(selectedSessionId) || [];
+      const existingIds = new Set(existingFiles.map((f) => f.file_id));
+      const newFiles = result.indexedSources.filter(
+        (f) => !existingIds.has(f.file_id)
+      );
+      const mergedFiles = [...existingFiles, ...newFiles];
+
       setIndexedFilesMap((prev) => {
         const next = new Map(prev);
-        const existing = next.get(selectedSessionId) || [];
-        const existingIds = new Set(existing.map((f) => f.file_id));
-        const newFiles = result.indexedSources.filter(
-          (f) => !existingIds.has(f.file_id)
-        );
-        mergedFiles = [...existing, ...newFiles];
         next.set(selectedSessionId, mergedFiles);
         return next;
       });
@@ -287,7 +289,7 @@ export function AppShell({ token, onSignOut }: AppShellProps) {
         })
       );
     },
-    [selectedSessionId]
+    [selectedSessionId, indexedFilesMap]
   );
 
   const handleIndexCancel = useCallback(() => {
