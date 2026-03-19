@@ -27,6 +27,7 @@ from backend.drive import (
 )
 from backend.embedding import embed_chunks
 from backend.storage import append_session
+from backend.summarize import generate_summary_chunks
 
 router = APIRouter()
 
@@ -173,7 +174,7 @@ async def _index_event_stream(
                 # Continue on per-file errors (best-effort)
                 continue
 
-        # 6. Phase 2 -- Embedding
+        # 6. Phase 1.5 -- Generate summary chunks
         if not all_chunks:
             yield _sse_event("complete", {
                 "files_indexed": 0,
@@ -182,6 +183,15 @@ async def _index_event_stream(
             })
             return
 
+        try:
+            summary_chunks = await generate_summary_chunks(all_chunks)
+            all_chunks.extend(summary_chunks)
+            logger.info("summary_chunks_added count=%d", len(summary_chunks))
+        except Exception:
+            logger.warning("summary_generation_failed", exc_info=True)
+            # Non-fatal: continue without summaries
+
+        # 7. Phase 2 -- Embedding
         yield _sse_event("embedding_start", {"total_chunks": len(all_chunks)})
 
         async def on_progress(embedded: int, total: int):

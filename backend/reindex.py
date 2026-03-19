@@ -14,6 +14,7 @@ from backend.chunking import chunk_text, chunk_pdf, chunk_sheet, chunk_slides
 from backend.drive import export_file, resolve_drive_link
 from backend.embedding import embed_chunks, EMBED_DIM
 from backend.staleness import invalidate_caches
+from backend.summarize import generate_summary_chunks
 
 
 async def fetch_and_chunk_file(file_id: str, access_token: str) -> list[dict]:
@@ -82,8 +83,11 @@ async def reindex_file(
         old_chunks = json.load(f)
     old_embeddings = np.load(str(emb_path))
 
-    # Build keep mask: indices of chunks NOT belonging to file_id
-    keep_indices = [i for i, c in enumerate(old_chunks) if c["file_id"] != file_id]
+    # Build keep mask: remove old chunks for this file AND old folder_overview summary
+    keep_indices = [
+        i for i, c in enumerate(old_chunks)
+        if c["file_id"] != file_id and c.get("file_id") != "folder_overview"
+    ]
 
     kept_chunks = [old_chunks[i] for i in keep_indices]
     if keep_indices:
@@ -91,14 +95,25 @@ async def reindex_file(
     else:
         kept_embeddings = np.empty((0, old_embeddings.shape[1]), dtype=np.float32)
 
-    # Merge
+    # Merge content chunks first
     merged_chunks = kept_chunks + new_chunks
-    if kept_embeddings.shape[0] > 0 and new_embeddings.shape[0] > 0:
-        merged_embeddings = np.vstack([kept_embeddings, new_embeddings])
-    elif new_embeddings.shape[0] > 0:
-        merged_embeddings = new_embeddings
+
+    # Regenerate summary chunks for the updated file set
+    # Filter to only content chunks (not old summaries) for summary generation
+    content_chunks = [c for c in merged_chunks if not c.get("chunk_type")]
+    try:
+        summary_chunks = await generate_summary_chunks(content_chunks)
+        summary_embeddings = await embed_new_chunks(summary_chunks)
+        merged_chunks.extend(summary_chunks)
+    except Exception:
+        summary_embeddings = np.empty((0, EMBED_DIM), dtype=np.float32)
+
+    # Stack all embeddings
+    all_emb_parts = [e for e in [kept_embeddings, new_embeddings, summary_embeddings] if e.shape[0] > 0]
+    if all_emb_parts:
+        merged_embeddings = np.vstack(all_emb_parts)
     else:
-        merged_embeddings = kept_embeddings
+        merged_embeddings = np.empty((0, EMBED_DIM), dtype=np.float32)
 
     # Step 4: save
     np.save(str(emb_path), merged_embeddings)

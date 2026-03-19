@@ -285,7 +285,13 @@ async def _chat_event_stream(
 
         # Check threshold only if no grep results to supplement
         # Skip threshold for broad queries (summarize, overview, etc.)
-        _broad_keywords = {"summarize", "summary", "overview", "explain", "describe", "tell me about", "what is"}
+        _broad_keywords = {
+            "summarize", "summary", "overview", "explain", "describe",
+            "tell me about", "what is", "what are", "what's in",
+            "about these files", "about this folder", "about the files",
+            "about the folder", "what do these files", "what does this folder",
+            "contents of", "in this folder", "in these files",
+        }
         _meta_keywords = {"what files", "list files", "list the files", "which files", "show files", "how many files"}
         is_broad = any(kw in query.lower() for kw in _broad_keywords)
         is_meta = any(kw in query.lower() for kw in _meta_keywords)
